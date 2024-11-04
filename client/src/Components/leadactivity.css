@@ -1,0 +1,84 @@
+.lead-discussion-main-card-activity-log {
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    height: 100%;
+    max-height: 350px;
+    overflow-y: scroll;
+    margin-bottom: 4%;
+}
+
+.activity-heading {
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+
+.image_control_discussion {
+    width: 50px;
+    height: 50px;
+    border-radius: 20%;
+}
+
+.activity-log {
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    max-height: 150px;
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+.activity-log:hover {
+    transform: translateY(-2px);
+}
+
+.activity-log-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.activity-log-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.activity-log-image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border: 2px solid #007bff;
+}
+
+.activity-log-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.log-type {
+    font-weight: bold;
+    margin: 0;
+    color: rgb(215,170,71);
+}
+
+.log-remark {
+    color: #666;
+    margin: 5px 0 0;
+}
+
+.log-date {
+    align-self: flex-end;
+    font-size: 14px;
+    color: #999;
+    margin-top: 10px;
+}
+
+.no-activity-log {
+    font-style: italic;
+    color: #888;
+}

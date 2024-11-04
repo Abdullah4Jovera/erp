@@ -1,0 +1,73 @@
+/* Each stage column */
+.stage-column {
+    flex: 0 0 264px !important;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.leads-column {
+    flex: 1;
+    /* Each column takes equal space */
+    margin-right: 20px;
+}
+
+.leads-column:last-child {
+    margin-right: 0;
+    /* Remove margin from the last column */
+}
+
+.lead-card {
+    border: 1px solid #ccc;
+    border-radius: 14px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #fff;
+    /* box-shadow: 0px 0px 7.6px 0px rgba(0, 0, 0, 0.25); */
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+    margin: 10px;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.button {
+    margin: 5px;
+}
+
+/* Each stage column */
+.stage-column {
+    flex: 0 0 264px !important;
+    /* Fixed width for each stage column */
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Wrapper to hold all stages in a row */
+.stages-wrapper {
+    display: flex;
+}
+
+.stage-scroll-container {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 10px 0;
+    gap: 20px;
+    scroll-behavior: smooth;
+
+}
+
+.stage-card {
+    background-color: #fefefe;
+    border-radius: 8px;
+    padding: 0px 0px !important;
+    height: 100%;
+    overflow-y: auto;
+    box-shadow: rgba(67, 71, 85, 0.27) 0px 0px 0.25em, rgba(90, 125, 188, 0.05) 0px 0.25em 1em;
+    width: 100%;
+    max-width: 262px !important;
+}

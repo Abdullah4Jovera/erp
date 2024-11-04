@@ -1,0 +1,27 @@
+.convertToLead_card {
+    padding: 10px 8px;
+    border: 1px solid #f1f1f1;
+    border-radius: 10px;
+}
+
+.label_class {
+    font-size: 12px;
+}
+
+.convert_to_lead_input_field::placeholder {
+    font-size: 12px;
+}
+
+.heading_tag {
+    text-align: center;
+    font-size: 1rem;
+}
+
+.custom-select {
+    font-size: 12px;
+    height: 39px;
+}
+
+.custom-select option {
+    font-size: 14px;
+}

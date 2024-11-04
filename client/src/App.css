@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+body {
+  padding: 0px;
+  margin: 0px;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+  /* background: linear-gradient(45deg, #e0d1b6, #f0e2c6); */
+  background-color: #000;
+}
+
+h1,
+h2,
+h3,
+p {
+  font-family: 'Poppins', sans-serif;
+}
+
+h1 {
+  font-size: 35px;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px rgb(211, 209, 209);
+  border-radius: 2px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  /* background: linear-gradient(45deg, #eebb5c, #38342e); */
+  background: rgb(211, 209, 209);
+  border-radius: 4px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  /* background: linear-gradient(45deg, #eebb5c, #38342e); */
+  background: rgb(211, 209, 209);
+  border-radius: 4px;
+}
+
+.clear_filter_btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: red;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.lead_search_card {
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.view_lead_btn_lead_search {
+  background-color: rgb(215, 170, 71);
+  padding: 6px 10px;
+  text-decoration: none;
+  color: white;
+  border-radius: 5px;
+  font-weight: 500;
+}
+
+.viewRequestLead {
+  background-color: rgb(215, 170, 71);
+  padding: 6px 10px;
+  text-decoration: none;
+  color: white;
+  border-radius: 5px;
+  font-weight: 500;
+  width: '100%';
+  max-width: 150px;
+  display: flex;
+  justify-content: center;
+}
+
+.stageNames {
+  background-color: #f5f3ed;
+  padding: 8px 10px;
+  border-radius: 5px;
+}
+
+.cell-width {
+  width: 18%;
+  text-align: center;
+}
+
+.leads_main_cards {
+  margin: 35px 10px 20px 10px;
+  padding: 20px 30px 15px 30px;
+  border-radius: 30px;
+}
+
+.lead_request_main_card {
+  width: 380px;
+  height: 700px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: #EFEFEF;
+  box-shadow: 0px 0px 7.6px 0px rgba(0, 0, 0, 0.25);
+  padding: 15px 25px;
+}
+
+.request_message {
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 17px;
+  text-align: center;
+}
+
+.current_request_status {
+  border-radius: 14px;
+  box-shadow: 0px 0px 7.6px 0px rgba(0, 0, 0, 0.25);
+  padding: 15px 25px;
+}
+
+.unassign_stage-card {
+  background-color: #fefefe;
+  border-radius: 8px;
+  padding: 0px 0px !important;
+  height: 100%;
+  overflow-y: auto;
+  box-shadow: rgba(67, 71, 85, 0.27) 0px 0px 0.25em, rgba(90, 125, 188, 0.05) 0px 0.25em 1em;
+  width: 90%;
+}
