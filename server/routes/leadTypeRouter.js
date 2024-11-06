@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const LeadType = require('../models/leadTypeModel'); // Adjust the path according to your project structure
 const { isAuth, hasRole } = require('../utils');
+const hasPermission = require('../hasPermission');
 
 // Create a new LeadType
-router.post('/', async (req, res) => {
+router.post('/', isAuth,hasPermission(['app_management']),async (req, res) => {
   try {
     const leadType = new LeadType({
       name: req.body.name,
@@ -18,7 +19,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all LeadTypes (excluding soft-deleted ones)
-router.get('/get-all-leadtypes', async (req, res) => {
+router.get('/get-all-leadtypes',async (req, res) => {
   try {
     const leadTypes = await LeadType.find({ delstatus: false }); // Exclude deleted lead types
     res.json(leadTypes);
@@ -28,7 +29,7 @@ router.get('/get-all-leadtypes', async (req, res) => {
 });
 
 // Get a single LeadType by ID (considering soft deletion)
-router.get('/:id', async (req, res) => {
+router.get('/:id', isAuth,hasPermission(['app_management']), async (req, res) => {
   try {
     const leadType = await LeadType.findOne({ _id: req.params.id, delstatus: false }); // Check delstatus
     if (!leadType) {
@@ -41,7 +42,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update a LeadType by ID
-router.put('/:id', isAuth,hasRole(['Super Admin', 'Developer']), async (req, res) => {
+router.put('/:id', isAuth,hasPermission(['app_management']), async (req, res) => {
   try {
     const leadType = await LeadType.findByIdAndUpdate(
       req.params.id,
@@ -62,7 +63,7 @@ router.put('/:id', isAuth,hasRole(['Super Admin', 'Developer']), async (req, res
 });
 
 // Soft delete a LeadType by ID
-router.put('/delete/:id', isAuth,hasRole(['Super Admin', 'Developer']),async (req, res) => {
+router.put('/delete/:id', isAuth,hasPermission(['app_management']),async (req, res) => {
   try {
     const leadType = await LeadType.findById(req.params.id);
     if (!leadType) {

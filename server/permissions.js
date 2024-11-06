@@ -36,6 +36,7 @@ module.exports = {
     filedownloadfromdeal:'file_download_from_deal',
     filedeletefromdeal:'file_delete_from_deal',    
     appmanagement:'app_management',
+    labelmanagement:'label_management',
     
   };
   

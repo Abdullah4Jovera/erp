@@ -1,9 +1,8 @@
 import React from 'react'
-import { BrowserRouter as Router, Route, Routes, useNavigate, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 import Login from '../Auth/login/Login'
 import SuperAdminDashboard from '../Pages/SuperAdminDashboard'
 import Allusers from '../Pages/Allusers'
-import Leads from '../Pages/Leads'
 import SingleLead from '../Pages/SingleLead'
 import Contract from '../Pages/Contract'
 import RejectedLeads from '../Pages/RejectedLeads'
@@ -30,6 +29,7 @@ import LeadApiConfig from '../Pages/LeadApiConfig'
 import Session from '../Pages/Sessions'
 import SingleContract from '../Pages/SingleContract '
 import ContractStages from '../Components/SuperAdminPages/ContractStages'
+import CreateLabels from '../Pages/CreateLabels'
 
 const Routing = () => {
     const ProtectedRoute = ({ element: Component, requiredPermission, ...rest }) => {
@@ -47,6 +47,8 @@ const Routing = () => {
 
                     <Route path='/' element={<Login />} />
                     <Route path="/leads" element={<ProtectedRoute element={CEODashboard} requiredPermission="crm_dashboard" />} />
+                    <Route path="/createlabels" element={<ProtectedRoute element={CreateLabels} requiredPermission="label_management" />} />
+                    {/* <Route path="/createlabels" element={<CreateLabels/>} /> */}
                     <Route path='/superadmindashboard' element={<SuperAdminDashboard />} />
                     <Route path='/single-leads/:id' element={<SingleLead />} />
                     <Route path='/rejectedlead' element={<RejectedLeads />} />
@@ -71,8 +73,8 @@ const Routing = () => {
                     <Route path='/convertedlead' element={<LeadConverted />} />
                     <Route path='/generatereport' element={<GenerateReport />} />
                     <Route path='/contract' element={<Contract />} />
-                    <Route path="/contracts/:id" element={<SingleContract/>} />
-                    <Route path="/contractstages" element={<ContractStages/>} />
+                    <Route path="/contracts/:id" element={<SingleContract />} />
+                    <Route path="/contractstages" element={<ContractStages />} />
                 </Routes>
 
             </Router>

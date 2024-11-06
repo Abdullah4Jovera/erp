@@ -346,12 +346,12 @@ const EditLead = ({ modalShow, setModalShow, leadId, fetchLeadsData, fetchSingle
                             </Form.Group>
                         </Col> */}
 
-                        <Col md={12} className="mb-3">
+                        <Col md={6} className="mb-3">
                             <Form.Group controlId="description">
                                 <Form.Label>Lead Details</Form.Label>
                                 <Form.Control
                                     as="textarea"
-                                    rows={3}
+                                    rows={10}
                                     placeholder="Enter Description"
                                     name="description"
                                     value={leadData.description}

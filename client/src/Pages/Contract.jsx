@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../Components/navbar/Navbar';
 import Sidebar from '../Components/sidebar/Sidebar';
-import { Container, Row, Col, Table, Dropdown } from 'react-bootstrap';
+import { Container, Row, Col, Table, Dropdown, Card } from 'react-bootstrap';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom'; // Import Link
@@ -76,7 +76,7 @@ const Contract = () => {
     const groupedContracts = contractStages.reduce((acc, stage) => {
         acc[stage._id] = {
             name: stage.name,
-            contracts: contracts.filter(contract => contract.contract_stage._id === stage._id),
+            contracts: contracts.filter(contract => contract.contract_stage && contract.contract_stage._id === stage._id),
         };
         return acc;
     }, {});
@@ -90,68 +90,70 @@ const Contract = () => {
                     </Col>
 
                     <Col xs={12} md={12} lg={10}>
-                        <h2 className="text-center mt-3">Contracts</h2>
-                        
-                        {loading ? (
-                            <h3 className="text-center">Loading...</h3>
-                        ) : error ? (
-                            <h3 className="text-center text-danger">{error}</h3>
-                        ) : Object.keys(groupedContracts).length > 0 ? (
-                            <Table striped bordered hover>
-                                <thead>
-                                    <tr>
-                                        <th>Stage</th>
-                                        <th>Contract Name</th>
-                                        <th>Created By</th>
-                                        <th>Timestamp</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {Object.values(groupedContracts).map((stage) => (
-                                        stage.contracts.length > 0 ? (
-                                            stage.contracts.map((contract) => (
-                                                <tr key={contract._id}>
-                                                    <td>{stage.name}</td>
-                                                    <td>
-                                                        <Link to={`/contracts/${contract._id}`} className="text-decoration-none">
-                                                            {contract.client_id.name}
-                                                        </Link>
-                                                    </td> 
-                                                    <td>{contract.created_by.name}</td>
-                                                    <td>{new Date(contract.created_at).toLocaleString()}</td>
-                                                    <td>
-                                                        <Dropdown>
-                                                            <Dropdown.Toggle variant="success" id="dropdown-basic">
-                                                                Change Stage
-                                                            </Dropdown.Toggle>
+                        <Card className='leads_main_cards'>
+                            <h2 className="text-center mt-3"  >Contracts</h2>
 
-                                                            <Dropdown.Menu>
-                                                                {contractStages.map((contractStage) => (
-                                                                    <Dropdown.Item 
-                                                                        key={contractStage._id} 
-                                                                        onClick={() => handleStageChange(contract._id, contractStage._id)}
-                                                                    >
-                                                                        {contractStage.name}
-                                                                    </Dropdown.Item>
-                                                                ))}
-                                                            </Dropdown.Menu>
-                                                        </Dropdown>
-                                                    </td>
+                            {loading ? (
+                                <h3 className="text-center">Loading...</h3>
+                            ) : error ? (
+                                <h3 className="text-center text-danger">{error}</h3>
+                            ) : Object.keys(groupedContracts).length > 0 ? (
+                                <Table striped bordered hover>
+                                    <thead>
+                                        <tr>
+                                            <th>Stage</th>
+                                            <th>Contract Name</th>
+                                            <th>Created By</th>
+                                            <th>Timestamp</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {Object.values(groupedContracts).map((stage) => (
+                                            stage.contracts.length > 0 ? (
+                                                stage.contracts.map((contract) => (
+                                                    <tr key={contract._id}>
+                                                        <td>{stage.name}</td>
+                                                        <td>
+                                                            <Link to={`/contracts/${contract._id}`} className="text-decoration-none">
+                                                                {contract.client_id.name}
+                                                            </Link>
+                                                        </td>
+                                                        <td>{contract.created_by.name}</td>
+                                                        <td>{new Date(contract.created_at).toLocaleString()}</td>
+                                                        <td>
+                                                            <Dropdown>
+                                                                <Dropdown.Toggle variant="success" id="dropdown-basic">
+                                                                    Change Stage
+                                                                </Dropdown.Toggle>
+
+                                                                <Dropdown.Menu>
+                                                                    {contractStages.map((contractStage) => (
+                                                                        <Dropdown.Item
+                                                                            key={contractStage._id}
+                                                                            onClick={() => handleStageChange(contract._id, contractStage._id)}
+                                                                        >
+                                                                            {contractStage.name}
+                                                                        </Dropdown.Item>
+                                                                    ))}
+                                                                </Dropdown.Menu>
+                                                            </Dropdown>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr key={stage.name}>
+                                                    <td>{stage.name}</td>
+                                                    <td colSpan="4" className="text-center">No contracts available</td>
                                                 </tr>
-                                            ))
-                                        ) : (
-                                            <tr key={stage.name}>
-                                                <td>{stage.name}</td>
-                                                <td colSpan="4" className="text-center">No contracts available</td>
-                                            </tr>
-                                        )
-                                    ))} 
-                                </tbody>
-                            </Table>
-                        ) : (
-                            <h3 className="text-center">No contracts available</h3>
-                        )}
+                                            )
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            ) : (
+                                <h3 className="text-center">No contracts available</h3>
+                            )}
+                        </Card>
                     </Col>
                 </Row>
             </Container>

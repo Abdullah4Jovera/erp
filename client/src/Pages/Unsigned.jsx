@@ -329,7 +329,7 @@ const UnassignedLead = () => {
             </Container>
 
             {/* Modal to add users */}
-            <Modal show={userModal} onHide={() => setUserModal(false)} centered size='lg' >
+            <Modal show={userModal} onHide={() => setUserModal(false)} centered size='md' >
                 <Modal.Header closeButton>
                     Add Users for {selectedLead ? selectedLead.client?.name : 'Lead'}
                 </Modal.Header>

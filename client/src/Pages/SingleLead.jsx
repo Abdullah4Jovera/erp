@@ -32,7 +32,7 @@ const SingleLead = () => {
     const token = useSelector(state => state.loginSlice.user?.token)
     const { id } = useParams();
     const [singleLead, setSingleLead] = useState([])
-    console.log(singleLead, 'singleLead')
+    console.log(singleLead,'singleLead')
     const [modalShow, setModalShow] = useState(false); // Modal state
     const [transferModal, setTransferModal] = useState(false);
     const [moveLeadModal, setMoveLeadModal] = useState(false)
@@ -169,47 +169,48 @@ const SingleLead = () => {
                         <Sidebar />
                     </Col>
                     <Col xs={12} md={12} lg={10}>
-                        <Card className='leads_main_cards mb-3' style={{ height: '100%', maxHeight: 'auto' }}>                            <div className='' style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: '8px' }}>
-                            {
-                                singleLead.is_reject &&
-                                    (canLabelLead || canEditLead || canMoveLead || canTransferLead || canRejectLead || canContractLead)
-                                    ? null
-                                    : (
-                                        <>
-                                            {canLabelLead && (
-                                                <Button className="mt-3 all_single_leads_button" onClick={() => setLabelModal(true)}>
-                                                    Labels
-                                                </Button>
-                                            )}
-                                            {canEditLead && (
-                                                <Button className="mt-3 all_single_leads_button" onClick={() => setModalShow(true)}>
-                                                    Edit
-                                                </Button>
-                                            )}
-                                            {canMoveLead && (
-                                                <Button className="mt-3 all_single_leads_button" onClick={() => setMoveLeadModal(true)}>
-                                                    Move
-                                                </Button>
-                                            )}
-                                            {canTransferLead && (
-                                                <Button className="mt-3 all_single_leads_button" onClick={() => setTransferModal(true)}>
-                                                    Transfer
-                                                </Button>
-                                            )}
-                                            {canRejectLead && (
-                                                <Button className="mt-3 all_single_leads_button" onClick={() => openRejectedLead()}>
-                                                    Rejected
-                                                </Button>
-                                            )}
-                                            {canContractLead && (
-                                                <Button className="mt-3 all_single_leads_button" onClick={() => openLeadConvertModal()}>
-                                                    Contract
-                                                </Button>
-                                            )}
-                                        </>
-                                    )
-                            }
-                        </div>
+                        <Card className='leads_main_cards mb-3' style={{height:'100%' , maxHeight:'auto'  }}>
+                            <div className='' style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: '8px' }}>
+                                {
+                                    singleLead.is_reject &&
+                                        (canLabelLead || canEditLead || canMoveLead || canTransferLead || canRejectLead || canContractLead)
+                                        ? null
+                                        : (
+                                            <>
+                                                {canLabelLead && (
+                                                    <Button className="mt-3 all_single_leads_button" onClick={() => setLabelModal(true)}>
+                                                        Labels
+                                                    </Button>
+                                                )}
+                                                {canEditLead && (
+                                                    <Button className="mt-3 all_single_leads_button" onClick={() => setModalShow(true)}>
+                                                        Edit
+                                                    </Button>
+                                                )}
+                                                {canMoveLead && (
+                                                    <Button className="mt-3 all_single_leads_button" onClick={() => setMoveLeadModal(true)}>
+                                                        Move
+                                                    </Button>
+                                                )}
+                                                {canTransferLead && (
+                                                    <Button className="mt-3 all_single_leads_button" onClick={() => setTransferModal(true)}>
+                                                        Transfer
+                                                    </Button>
+                                                )}
+                                                {canRejectLead && (
+                                                    <Button className="mt-3 all_single_leads_button" onClick={() => openRejectedLead()}>
+                                                        Rejected
+                                                    </Button>
+                                                )}
+                                                {canContractLead && (
+                                                    <Button className="mt-3 all_single_leads_button" onClick={() => openLeadConvertModal()}>
+                                                        Contract
+                                                    </Button>
+                                                )}
+                                            </>
+                                        )
+                                }
+                            </div>
 
                             <Row className='mt-4' >
                                 <Col xs={12} md={12} lg={9} className='single_lead_col'>
@@ -219,9 +220,9 @@ const SingleLead = () => {
                                             <Card body className='mb-4 ' style={{ position: 'relative' }} >
                                                 <div>
                                                     <h4 style={{ color: '#B9406B', textAlign: 'center' }} className='mb-0'> Reason of Rejection Lead </h4>
-                                                    <p>
-                                                        {singleLead && singleLead.reject_reason}
-                                                    </p>
+                                                <p>
+                                                    {singleLead && singleLead.reject_reason}
+                                                </p>
                                                 </div>
                                                 <Image src={rejected_image} className='rejected_image' alt='Rejected Image' style={{ width: '140px', height: '140px', borderRadius: '50%' }} />
                                             </Card>

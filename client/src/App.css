@@ -88,8 +88,9 @@ h1 {
 }
 
 .cell-width {
-  width: 18%;
+  width: 12%;
   text-align: center;
+  font-size: 14px;
 }
 
 .leads_main_cards {
@@ -122,6 +123,14 @@ h1 {
   padding: 15px 25px;
 }
 
+.lead_exist_status {
+  border-radius: 14px;
+  box-shadow: 0px 0px 7.6px 0px rgba(0, 0, 0, 0.25);
+  padding: 15px 25px;
+  height: 100%;
+  max-height: 240px;
+}
+
 .unassign_stage-card {
   background-color: #fefefe;
   border-radius: 8px;
@@ -130,4 +139,13 @@ h1 {
   overflow-y: auto;
   box-shadow: rgba(67, 71, 85, 0.27) 0px 0px 0.25em, rgba(90, 125, 188, 0.05) 0px 0.25em 1em;
   width: 90%;
+}
+
+.image_control_discussion_main_lead {
+  border-radius: 5px; /* Optional: to make images rounded */
+  transition: transform 0.2s; /* Optional: smooth scaling effect */
+}
+
+.image_control_discussion_main_lead:hover {
+  transform: scale(1.05); /* Optional: slight zoom on hover */
 }

@@ -15,16 +15,27 @@ const RejectedLeads = () => {
     const branchNames = useSelector(state => state.loginSlice.branches);
     const productNames = useSelector(state => state.loginSlice.products);
     const product = useSelector((state) => state.loginSlice.user?.products);
+    const branch = useSelector((state) => state.loginSlice.user?.branch);
     const [rejectedLeads, setRejectedLeads] = useState([]);
     const [rejectedLeadReason, setRejectedLeadReason] = useState(false);
     const [selectedRejectReason, setSelectedRejectReason] = useState('');
     const [searchClientName, setSearchClientName] = useState('');
+    const [searchCompanyName, setSearchCompanyName] = useState('')
+    const [searchPhoneNumber, setSearchPhoneNumber] = useState('');
     const [searchPipelineName, setSearchPipelineName] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedBranch, setSelectedBranch] = useState('All');
     const [selectedProduct, setSelectedProduct] = useState('All');
-    const leadsPerPage = 10;
+    const leadsPerPage = 9;
     const pagesToShow = 5;
+
+    console.log(rejectedLeads, 'rejectedLeads')
+
+    const productPipelineMap = {
+        'Business Banking': ['Business Banking'],
+        'Personal Loan': ['EIB Bank', 'Personal Loan'],
+        'Mortgage Loan': ['Mortgage', 'CEO Mortgage'],
+    };
 
     // Fetch Rejected Leads
     useEffect(() => {
@@ -49,7 +60,10 @@ const RejectedLeads = () => {
         (selectedBranch === 'All' || lead.branchName === selectedBranch) &&
         (selectedProduct === 'All' || lead.productName === selectedProduct) &&
         lead.clientName.toLowerCase().includes(searchClientName.toLowerCase()) &&
-        lead.pipelineName.toLowerCase().includes(searchPipelineName.toLowerCase())
+        lead.pipelineName.toLowerCase().includes(searchPipelineName.toLowerCase()) &&
+        lead.phone.toLowerCase().includes(searchPhoneNumber.toLowerCase()) 
+        // &&
+        // lead.companyName.toLowerCase().includes(searchCompanyName.toLowerCase())
     );
 
     // Pagination for the filtered leads
@@ -67,7 +81,12 @@ const RejectedLeads = () => {
     // Reset pagination when search terms, branch, or product changes
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchClientName, searchPipelineName, selectedBranch, selectedProduct]);
+    }, [searchClientName, searchPhoneNumber, searchCompanyName, searchPipelineName, selectedBranch, selectedProduct]);
+
+    // Reset pipeline selection when product changes
+    useEffect(() => {
+        setSearchPipelineName('');
+    }, [selectedProduct]);
 
     // Calculate page range to show in pagination
     const startPage = Math.max(1, currentPage - Math.floor(pagesToShow / 2));
@@ -95,10 +114,7 @@ const RejectedLeads = () => {
                             </h2>
 
                             {/* Branch and Product Filter Buttons */}
-                            <div
-                                className="filter-buttons mb-3 mt-3"
-                                style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}
-                            >
+                            <div className="filter-buttons mb-3 mt-3" style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                                 <Button
                                     variant="outline-primary"
                                     onClick={() => {
@@ -108,7 +124,7 @@ const RejectedLeads = () => {
                                     active={selectedBranch === 'All' && selectedProduct === 'All'}
                                     style={{
                                         backgroundColor: selectedBranch === 'All' && selectedProduct === 'All' ? '#ffa000' : 'black',
-                                        color: selectedBranch === 'All' && selectedProduct === 'All' ? 'white' : 'white',
+                                        color: 'white',
                                         border: 'none',
                                     }}
                                 >
@@ -122,7 +138,7 @@ const RejectedLeads = () => {
                                         active={selectedBranch === branch.name}
                                         style={{
                                             backgroundColor: selectedBranch === branch.name ? '#ffa000' : 'black',
-                                            color: selectedBranch === branch.name ? 'white' : 'white',
+                                            color: 'white',
                                             border: 'none',
                                         }}
                                     >
@@ -140,7 +156,7 @@ const RejectedLeads = () => {
                                             active={selectedProduct === product.name}
                                             style={{
                                                 backgroundColor: selectedProduct === product.name ? '#ffa000' : 'black',
-                                                color: selectedProduct === product.name ? 'white' : 'white',
+                                                color: 'white',
                                                 border: 'none',
                                             }}
                                         >
@@ -150,11 +166,10 @@ const RejectedLeads = () => {
                                 </div>
                             )}
 
-
                             {/* Search Form */}
                             <Form className="my-3">
                                 <Row>
-                                    <Col md={6}>
+                                    <Col md={3}>
                                         <Form.Group controlId="searchClientName">
                                             <Form.Control
                                                 type="text"
@@ -164,16 +179,46 @@ const RejectedLeads = () => {
                                             />
                                         </Form.Group>
                                     </Col>
-                                    <Col md={6}>
-                                        <Form.Group controlId="searchPipelineName">
+                                    <Col md={3}>
+                                        <Form.Group controlId="searchCompanyName">
                                             <Form.Control
                                                 type="text"
-                                                placeholder="Search by Pipeline Name"
-                                                value={searchPipelineName}
-                                                onChange={e => setSearchPipelineName(e.target.value)}
+                                                placeholder="Search by Company Name"
+                                                value={searchCompanyName}
+                                                onChange={e => setSearchCompanyName(e.target.value)}
                                             />
                                         </Form.Group>
                                     </Col>
+                                    <Col md={3}>
+                                        <Form.Group controlId="searchClientPhone">
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="Search by Phone Number"
+                                                value={searchPhoneNumber}
+                                                onChange={e => setSearchPhoneNumber(e.target.value)}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    {!product && !branch && (
+                                        <Col md={3}>
+                                            <Form.Group controlId="searchPipelineName">
+                                                <Form.Select
+                                                    value={searchPipelineName}
+                                                    onChange={e => setSearchPipelineName(e.target.value)}
+                                                    disabled={selectedBranch === 'Ajman'} // Disable if "Ajman" is selected
+                                                >
+                                                    <option value="">Select Pipeline</option>
+                                                    {(selectedProduct !== 'All' && productPipelineMap[selectedProduct]) ? (
+                                                        productPipelineMap[selectedProduct].map(pipeline => (
+                                                            <option key={pipeline} value={pipeline}>{pipeline}</option>
+                                                        ))
+                                                    ) : (
+                                                        <option value="">No Pipeline Available</option>
+                                                    )}
+                                                </Form.Select>
+                                            </Form.Group>
+                                        </Col>
+                                    )}
                                 </Row>
                             </Form>
 
@@ -181,12 +226,14 @@ const RejectedLeads = () => {
                             <Table striped bordered hover className='mt-3 table_main_container' size='md'>
                                 <thead>
                                     <tr className="teble_tr_class" style={{ backgroundColor: '#e9ecef', color: '#343a40', borderBottom: '2px solid #dee2e6', transition: 'background-color 0.3s ease' }}>
-                                        <th style={{ backgroundColor: '#f8f9fd' }} className="cell-width">Client Name</th>
-                                        <th style={{ backgroundColor: '#f8f9fd' }} className="cell-width">Pipeline Name</th>
-                                        <th style={{ backgroundColor: '#f8f9fd' }} className="cell-width">Product Stage</th>
-                                        <th style={{ backgroundColor: '#f8f9fd' }} className="cell-width">Product Name</th>
-                                        <th style={{ backgroundColor: '#f8f9fd' }} className="cell-width">Branch Name</th>
-                                        <th style={{ backgroundColor: '#f8f9fd' }} className="cell-width">Action</th>
+                                        <th className="cell-width">Client Name</th>
+                                        <th className="cell-width">Company Name</th>
+                                        <th className="cell-width">Phone</th>
+                                        {/* <th className="cell-width">Product Name</th> */}
+                                        <th className="cell-width">Pipeline Name</th>
+                                        <th className="cell-width">Product Stage</th>
+                                        <th className="cell-width">Branch Name</th>
+                                        <th className="cell-width">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -194,65 +241,57 @@ const RejectedLeads = () => {
                                         currentLeads.map((lead) => (
                                             <tr key={lead.id}>
                                                 <td className="cell-width">{lead.clientName}</td>
+                                                <td className="cell-width">{lead.companyName ? lead.companyName : 'N/A'}</td>
+                                                <td className="cell-width">{lead.phone}</td>
+                                                {/* <td className="cell-width">{lead.productName}</td> */}
                                                 <td className="cell-width">{lead.pipelineName}</td>
                                                 <td className="cell-width">{lead.productStage}</td>
-                                                <td className="cell-width">{lead.productName}</td>
                                                 <td className="cell-width">{lead.branchName}</td>
                                                 <td className="cell-width">
-                                                    <Link to={`/single-leads/${lead.id}`} className='addActionbtn'>
-                                                        <GrView style={{ color: '#ffa000', fontSize: '20px', cursor: 'pointer', marginRight: '2px' }} />
-                                                        <div className="tooltip">View Lead</div>
+                                                    <Link to={`/single-leads/${lead.id}`} >
+                                                        <GrView style={{ color: '#ffa000', fontSize: '20px', cursor: 'pointer' }} />
                                                     </Link>
-                                                    <div className='addActionbtn'>
-                                                        <FcCancel style={{ fontSize: '20px', cursor: 'pointer' }} onClick={() => handleShowReason(lead.reject_reason)} />
-                                                        <div className="tooltip">Rejected Reason</div>
-                                                    </div>
+                                                    <FcCancel className="mx-2" onClick={() => handleShowReason(lead.reason)} style={{ cursor: 'pointer', color: 'red', fontSize: '20px', }} />
                                                 </td>
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="6" className="text-center">No leads found.</td>
+                                            <td colSpan="6" className="text-center">No leads found</td>
                                         </tr>
                                     )}
                                 </tbody>
                             </Table>
 
-                            {/* Pagination Controls */}
-                            <Pagination className="justify-content-center">
-                                <Pagination.Prev
-                                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                                    disabled={currentPage === 1}
-                                />
-                                {pages.map(page => (
-                                    <Pagination.Item
-                                        key={page}
-                                        active={page === currentPage}
-                                        onClick={() => handlePageChange(page)}
-                                    >
-                                        {page}
-                                    </Pagination.Item>
-                                ))}
-                                <Pagination.Next
-                                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                                    disabled={currentPage === totalPages}
-                                />
-                            </Pagination>
+                            {/* Pagination */}
+                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <Pagination>
+                                    <Pagination.First onClick={() => handlePageChange(1)} disabled={currentPage === 1} />
+                                    <Pagination.Prev onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} />
+                                    {pages.map(page => (
+                                        <Pagination.Item key={page} active={page === currentPage} onClick={() => handlePageChange(page)}>
+                                            {page}
+                                        </Pagination.Item>
+                                    ))}
+                                    <Pagination.Next onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
+                                    <Pagination.Last onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} />
+                                </Pagination>
+                            </div>
+
+                            {/* Modal for rejected lead reason */}
+                            <Modal show={rejectedLeadReason} onHide={() => setRejectedLeadReason(false)} size='md' centered >
+                                <Modal.Header closeButton>
+                                    <Modal.Title>Rejected Lead Reason</Modal.Title>
+                                </Modal.Header>
+                                <Modal.Body>{selectedRejectReason}</Modal.Body>
+                                <Modal.Footer>
+                                    <Button className='all_close_btn_container' onClick={() => setRejectedLeadReason(false)}>Close</Button>
+                                </Modal.Footer>
+                            </Modal>
                         </Card>
                     </Col>
                 </Row>
             </Container>
-
-            {/* Rejected Lead Reason Modal */}
-            <Modal show={rejectedLeadReason} onHide={() => setRejectedLeadReason(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Rejected Lead Reason</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>{selectedRejectReason}</Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setRejectedLeadReason(false)}>Close</Button>
-                </Modal.Footer>
-            </Modal>
         </div>
     );
 };

@@ -1,18 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
-import { Col, Container, Image, Row, Card, Button } from 'react-bootstrap';
+import { Col, Container, Image, Row, Card, Button, OverlayTrigger, Tooltip, Modal } from 'react-bootstrap';
 import Sidebar from '../Components/sidebar/Sidebar';
 import { Link } from 'react-router-dom';
-import { MdNavigateNext } from "react-icons/md";
+import Select from 'react-select';
+import { TiDeleteOutline } from "react-icons/ti";
+import { AiFillDelete } from "react-icons/ai";
+
 const Request = () => {
     const [requests, setRequests] = useState([]);
+    const [filteredRequests, setFilteredRequests] = useState([]);
     const token = useSelector(state => state.loginSlice.user?.token);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const userId = useSelector(state => state.loginSlice.user?._id);
     const [pendingCount, setPendingCount] = useState(0);
     const [actionCount, setActionCount] = useState(0);
+    const [delLabelModal, setDelLabelModal] = useState(false);
+    const [deleteLabelId, setDeleteLabelId] = useState(null)
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
@@ -32,6 +38,7 @@ const Request = () => {
             if (response.data && response.data.data) {
                 const fetchedRequests = response.data.data;
                 setRequests(fetchedRequests);
+                setFilteredRequests(fetchedRequests); // Set initial filtered requests to all requests
 
                 // Count pending requests where the user is a receiver
                 const pending = fetchedRequests.filter(request =>
@@ -46,9 +53,9 @@ const Request = () => {
                     request.read === false
                 );
                 setActionCount(actionTaken.length);
-
             } else {
                 setRequests([]);
+                setFilteredRequests([]);
                 setPendingCount(0);
                 setActionCount(0);
             }
@@ -100,15 +107,53 @@ const Request = () => {
         }
     };
 
+    // Filter options for Select dropdown
+    const actionOptions = [
+        { value: 'All', label: 'All' },
+        { value: 'Pending', label: 'Pending' },
+        { value: 'Accept', label: 'Accepted' },
+        { value: 'Decline', label: 'Decline' },
+    ];
+
+    // Handle filter change
+    const handleFilterChange = (selectedOption) => {
+        const action = selectedOption.value;
+        if (action === 'All') {
+            setFilteredRequests(requests);
+        } else {
+            setFilteredRequests(requests.filter(request => request.action === action));
+        }
+        setCurrentPage(1); // Reset pagination to first page
+    };
+
     // Pagination logic
     const indexOfLastRequest = currentPage * itemsPerPage;
     const indexOfFirstRequest = indexOfLastRequest - itemsPerPage;
-    const currentRequests = requests.slice(indexOfFirstRequest, indexOfLastRequest);
-    const totalPages = Math.ceil(requests.length / itemsPerPage);
+    const currentRequests = filteredRequests.slice(indexOfFirstRequest, indexOfLastRequest);
+    const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
 
     const handlePageChange = (newPage) => {
         setCurrentPage(newPage);
     };
+
+    const DelRequestModal = (id) => {
+        setDelLabelModal(true)
+        setDeleteLabelId(id)
+    }
+
+    const handleDelete = async (id) => {
+        try {
+            await axios.put(`/api/request/soft-delete/${id}`, {}, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            })
+            setDelLabelModal(false)
+            fetchRequests();
+        } catch (error) {
+            console.log(error, 'error')
+        }
+    }
 
     if (loading) {
         return <div>Loading...</div>;
@@ -125,12 +170,26 @@ const Request = () => {
                     <Col xs={12} md={12} lg={10}>
                         <Card className='leads_main_cards' style={{ maxHeight: '95vh', overflowX: 'auto' }}>
                             <h2 className='text-center mt-3'>Lead Requests</h2>
-                            {requests.length === 0 ? (
+
+                            {/* Action Filter */}
+                            <div className="mb-4 d-flex justify-content-end">
+                                <Select
+                                    options={actionOptions}
+                                    onChange={handleFilterChange}
+                                    defaultValue={actionOptions[0]}
+                                    isClearable={false}
+                                    placeholder="Filter by Action"
+                                    className="w-50"
+                                />
+                            </div>
+
+                            {filteredRequests.length === 0 ? (
                                 <p>No lead requests found.</p>
                             ) : (
                                 <>
                                     <Row>
                                         {currentRequests.map((request) => {
+                                            console.log(request, 'request')
                                             const imageSrc = request.sender.image
                                                 ? `/images/${request.sender.image}`
                                                 : null;
@@ -144,11 +203,16 @@ const Request = () => {
                                                                     <strong>Sender:</strong>
                                                                     <Card.Subtitle className="mb-2 text-muted">
                                                                         {imageSrc && (
-                                                                            <Image
-                                                                                src={imageSrc}
-                                                                                alt="Sender Image"
-                                                                                style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                                                                            />
+                                                                            <OverlayTrigger
+                                                                                placement="top"
+                                                                                overlay={<Tooltip id={`tooltip-sender`}>{request.sender.name}</Tooltip>}
+                                                                            >
+                                                                                <Image
+                                                                                    src={imageSrc}
+                                                                                    alt="Sender Image"
+                                                                                    style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+                                                                                />
+                                                                            </OverlayTrigger>
                                                                         )}
                                                                         <span style={{ color: '#979797', fontWeight: '500' }} > {request.sender?.name}</span>
                                                                     </Card.Subtitle>
@@ -206,16 +270,19 @@ const Request = () => {
 
                                                             <Card.Text className='mt-3' >
                                                                 <strong  >Receivers:</strong>
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                                                     {request.receivers?.map((receiver) => (
-                                                                        <React.Fragment key={receiver._id}>
+                                                                        <OverlayTrigger
+                                                                            key={receiver._id}
+                                                                            placement="top"
+                                                                            overlay={<Tooltip id={`tooltip-${receiver._id}`}>{receiver.name}</Tooltip>}
+                                                                        >
                                                                             <Image
                                                                                 src={`/images/${receiver.image}`}
                                                                                 alt="Receiver Image"
                                                                                 style={{ width: '40px', height: '40px', borderRadius: '50%' }}
                                                                             />
-                                                                            <p className='mb-0'>{receiver.name}</p>
-                                                                        </React.Fragment>
+                                                                        </OverlayTrigger>
                                                                     ))}
                                                                 </div>
                                                                 <Link
@@ -226,6 +293,7 @@ const Request = () => {
                                                                     View Lead
                                                                 </Link>
                                                             </Card.Text>
+
                                                             {request?.action !== 'Pending' && request?.actionChangedBy && (
                                                                 <Card.Text className={`mt-3 ${request.action === 'Accept' ? 'text-success' : request.action === 'Decline' ? 'text-danger' : ''}`}>
                                                                     The Lead Request of type "{request?.type}" has been {request.action.toLowerCase()} by <strong>{request.actionChangedBy.name}</strong>
@@ -264,6 +332,10 @@ const Request = () => {
                                                                     </Button>
                                                                 </div>
                                                             )}
+
+                                                            <div style={{ display: 'flex', justifyContent: 'flex-end' }} >
+                                                                <AiFillDelete onClick={() => DelRequestModal(request?._id)} style={{ fontSize: '30px', color: 'red', cursor: 'pointer' }} />
+                                                            </div>
                                                         </Card.Body>
                                                     </Card>
                                                 </Col>
@@ -292,6 +364,28 @@ const Request = () => {
                         </Card>
                     </Col>
                 </Row>
+
+                <Modal
+                    size="sm"
+                    aria-labelledby="contained-modal-title-vcenter"
+                    centered
+                    show={delLabelModal}
+                    onHide={() => setDelLabelModal(false)}
+                >
+                    <Modal.Header closeButton>
+                        <Modal.Title id="contained-modal-title-vcenter">
+                            Delete Label
+                        </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body className="text-center">
+                        <TiDeleteOutline className="text-danger" style={{ fontSize: '6rem' }} />
+                        <p>Are you sure you want to Delete this Label ?</p>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button className='all_close_btn_container' onClick={() => setDelLabelModal(false)}>No</Button>
+                        <Button className='all_single_leads_button' onClick={() => handleDelete(deleteLabelId)}>Yes</Button>
+                    </Modal.Footer>
+                </Modal>
             </Container>
         </div>
     );

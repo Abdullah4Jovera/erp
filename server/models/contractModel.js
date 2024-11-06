@@ -52,7 +52,7 @@ const contractSchema = new Schema({
         enum: ['Active', 'Inactive'],
         required: true
     },
-    created_by: {
+    created_by: { 
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true

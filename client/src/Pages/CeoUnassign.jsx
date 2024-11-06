@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import Navbar from '../Components/navbar/Navbar';
-import { Container, Row, Col, Modal, Button, Card, Pagination } from 'react-bootstrap';
+import { Container, Row, Col, Modal, Button, Card, Pagination, Spinner } from 'react-bootstrap';
 import Sidebar from '../Components/sidebar/Sidebar';
 import Select from 'react-select';
 import { MdDriveFileMove } from "react-icons/md";
@@ -24,7 +24,7 @@ const CEOunassignedLead = () => {
     const [moveSuccessMessage, setMoveSuccessMessage] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedUserDescription, setSelectedUserDescription] = useState('')
-    const [ceoUnassignModal, setCeoUnassignModal] = useState(false)
+    const [ceoUnassignModal, setCeoUnassignModal] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const leadsPerPage = 10; // Number of leads per page
 
@@ -102,9 +102,9 @@ const CEOunassignedLead = () => {
     };
 
     const viewDescription = (lead) => {
-        setSelectedUserDescription(lead)
-        setCeoUnassignModal(true)
-    }
+        setSelectedUserDescription(lead);
+        setCeoUnassignModal(true);
+    };
 
     const pipelineOptions = selectedLead?.products.pipeline_id.map((pipeline) => ({
         value: pipeline._id,
@@ -121,6 +121,7 @@ const CEOunassignedLead = () => {
         label: branch.name,
     }));
 
+    // Automatically set selectedPipeline when the specific branch is selected
     useEffect(() => {
         if (selectedBranch?.value === '6719fdded3de53c9fb53fb79') {
             setSelectedPipeline({ value: '6719fda75035bf8bd708d024', label: 'Ajman Branch' });
@@ -167,7 +168,11 @@ const CEOunassignedLead = () => {
     };
 
     if (loading) {
-        return <div>Loading...</div>;
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Spinner animation="grow" />
+            </div>
+        );
     }
 
     return (
@@ -273,40 +278,42 @@ const CEOunassignedLead = () => {
                 </Row>
             </Container>
 
-            {/* Assign Lead Modal */}
-            <Modal show={assignModal} onHide={() => setAssignModal(false)}>
+            {/* Modal for Assigning Leads */}
+            <Modal show={assignModal} onHide={() => setAssignModal(false)} size="md">
                 <Modal.Header closeButton>
-                    <Modal.Title>Move Lead to Pipeline/Branch</Modal.Title>
+                    <Modal.Title>Assign Lead</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                <div className="mt-2">
-                        <label>Select Branch</label>
-                        <Select
-                            options={branchOptions}
-                            value={selectedBranch}
-                            onChange={setSelectedBranch}
-                        />
-                    </div>
-                    <div>
-                        <label>Select Pipeline</label>
-                        <Select
-                            options={pipelineOptions}
-                            value={selectedPipeline}
-                            onChange={setSelectedPipeline}
-                        />
-                    </div>
-                    <div className="mt-2">
-                        <label>Select Stage</label>
-                        <Select
-                            options={stageOptions}
-                            value={selectedStage}
-                            onChange={setSelectedStage}
-                        />
-                    </div>
+                    {moveSuccessMessage && <div className="alert alert-success">{moveSuccessMessage}</div>}
+                    <h6>Select Branch</h6>
+                    <Select
+                        options={branchOptions}
+                        onChange={setSelectedBranch}
+                        value={selectedBranch}
+                    />
+
+                    <h6 className="mt-3">Select Pipeline</h6>
+                    <Select
+                        options={pipelineOptions}
+                        onChange={setSelectedPipeline}
+                        value={selectedPipeline}
+                        isDisabled={selectedBranch?.value === '6719fdded3de53c9fb53fb79'} // Disable when specific branch is selected
+                    />
+
+                    <h6 className="mt-3">Select Stage</h6>
+                    <Select
+                        options={stageOptions}
+                        onChange={setSelectedStage}
+                        value={selectedStage}
+                    />
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setAssignModal(false)}>Close</Button>
-                    <Button variant="primary" onClick={moveLeadsHandler}>Move Lead</Button>
+                    <Button className='all_close_btn_container' onClick={() => setAssignModal(false)}>
+                        Close
+                    </Button>
+                    <Button className='all_single_leads_button' onClick={moveLeadsHandler}>
+                        Move Lead
+                    </Button>
                 </Modal.Footer>
             </Modal>
 
@@ -324,14 +331,19 @@ const CEOunassignedLead = () => {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>
-                        {selectedUserDescription && selectedUserDescription.description}
-                    </p>
+                    {selectedUserDescription && (
+                        <ul>
+                            {selectedUserDescription.description.split('\n').map((item, index) => (
+                                <li key={index}>{item.replace('• ', '')}</li> // Remove the bullet character
+                            ))}
+                        </ul>
+                    )}
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button onClick={() => setCeoUnassignModal(false)}>Close</Button>
+                    <Button className='all_close_btn_container' onClick={() => setCeoUnassignModal(false)}>Close</Button>
                 </Modal.Footer>
             </Modal>
+
         </div>
     );
 };

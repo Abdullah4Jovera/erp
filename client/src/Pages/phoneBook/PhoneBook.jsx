@@ -19,7 +19,7 @@ const PhoneBook = () => {
     const navigate = useNavigate();
     const token = useSelector(state => state.loginSlice.user?.token);
     const role = useSelector(state => state.loginSlice.user?.role)
-    
+
     const [phonebookData, setPhonebookData] = useState([]);
     const [filteredPhonebookData, setFilteredPhonebookData] = useState([]);
     const [showAddCommentModal, setShowAddCommentModal] = useState(false);
@@ -33,6 +33,8 @@ const PhoneBook = () => {
     const [phoneBookModal, setPhoneBookModal] = useState(false)
     const [phoneBookNumber, setPhoneBookNumber] = useState('')
     const [phoneID, setPhoneID] = useState('')
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     // State for handling the conversion confirmation modal
     const [showConvertModal, setShowConvertModal] = useState(false);
@@ -80,8 +82,8 @@ const PhoneBook = () => {
         getPhoneNumber();
     }, [token]);
 
+    // Update filtered data based on search queries
     useEffect(() => {
-        // Filter phonebook data based on search queries
         const filteredData = phonebookData.filter(entry => {
             const isNumberMatch = entry.number.includes(searchQuery);
             const isStatusMatch = searchCalStatus === '' || entry.calstatus === searchCalStatus;
@@ -89,6 +91,7 @@ const PhoneBook = () => {
         });
 
         setFilteredPhonebookData(filteredData);
+        setCurrentPage(1); // Reset to first page after filtering
     }, [searchQuery, searchCalStatus, phonebookData]);
 
     const handleAddCommentClick = (entry) => {
@@ -203,6 +206,24 @@ const PhoneBook = () => {
         setPhoneID(id)
     }
 
+    // Calculating indices for current page items
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredPhonebookData.slice(indexOfFirstItem, indexOfLastItem);
+
+    // Handling page change
+    const handleNextPage = () => {
+        if (currentPage < Math.ceil(filteredPhonebookData.length / itemsPerPage)) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
     return (
         <div>
             {/* <Navbar /> */}
@@ -248,59 +269,36 @@ const PhoneBook = () => {
                                 {filteredPhonebookData.length > 0 ? (
                                     <Table hover bordered responsive className='mt-3 table_main_container' size='md'>
                                         <thead style={{ backgroundColor: '#f8f9fd' }}>
-                                            <tr
-                                                className="teble_tr_class"
-                                                style={{
-                                                    backgroundColor: '#e9ecef', // Light background color for the row
-                                                    color: '#343a40', // Dark text color
-                                                    borderBottom: '2px solid #dee2e6', // Bottom border for rows
-                                                    transition: 'background-color 0.3s ease', // Smooth transition for hover effect
-                                                }}
-                                            >
+                                            <tr className="teble_tr_class" style={{ backgroundColor: '#e9ecef', color: '#343a40', borderBottom: '2px solid #dee2e6', transition: 'background-color 0.3s ease' }}>
                                                 <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Number</th>
                                                 <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Status</th>
                                                 <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Call Status</th>
                                                 <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Actions</th>
-
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {filteredPhonebookData.map((entry, index) => (
+                                            {currentItems.map((entry, index) => (
                                                 <tr key={index}>
-                                                    <td className='table_td_class' >{entry.number}</td>
-                                                    <td className='table_td_class' >{entry.status}</td>
+                                                    <td className='table_td_class'>{entry.number}</td>
+                                                    <td className='table_td_class'>{entry.status}</td>
                                                     <td
+                                                        className='table_td_class'
                                                         style={{
                                                             textAlign: 'center',
                                                             backgroundColor: entry.calstatus === 'No Answer' ? 'green' : entry.calstatus === 'Not Interested' ? 'red' : 'transparent',
                                                             color: entry.calstatus === 'No Answer' || entry.calstatus === 'Not Interested' ? 'white' : 'inherit'
                                                         }}
-                                                        className='table_td_class'
                                                     >
                                                         {entry.calstatus}
                                                     </td>
                                                     <td style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px' }}>
-                                                        {dropdownEntry && dropdownEntry._id === entry._id ? (
-                                                            <Dropdown>
-                                                                <Dropdown.Toggle className="dropdown_menu" id="dropdown-basic">
-                                                                    {entry.calstatus || 'Select Status'}
-                                                                </Dropdown.Toggle>
-                                                                <Dropdown.Menu>
-                                                                    <Dropdown.Item onClick={() => handleCallStatusChange('Req to call')}>Req to call</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={() => handleCallStatusChange('Interested')}>Interested</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={() => handleCallStatusChange('Rejected')}>Rejected</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={() => handleCallStatusChange('Convert to Lead')}>Convert to Lead</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                            </Dropdown>
-                                                        ) : (
-                                                            <div className='editAction'>
-                                                                <FiEdit2
-                                                                    onClick={() => setDropdownEntry(entry)}
-                                                                    style={{ fontSize: '12px', cursor: 'pointer', color: 'white' }}
-                                                                />
-                                                                <div className="tooltip">Edit Status</div>
-                                                            </div>
-                                                        )}
+                                                        <div className='editAction'>
+                                                            <FiEdit2
+                                                                onClick={() => setDropdownEntry(entry)}
+                                                                style={{ fontSize: '12px', cursor: 'pointer', color: 'white' }}
+                                                            />
+                                                            <div className="tooltip">Edit Status</div>
+                                                        </div>
                                                         <div className='addAction'>
                                                             <MdAdd onClick={() => handleAddCommentClick(entry)} style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }} />
                                                             <div className="tooltip">Add Comments</div>
@@ -309,20 +307,30 @@ const PhoneBook = () => {
                                                             <AiOutlineEye onClick={() => handleViewCommentsClick(entry)} style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }} />
                                                             <div className="tooltip">View Comments</div>
                                                         </div>
-
                                                         <div className='viewAction'>
                                                             <IoOpenOutline onClick={() => HandleCreatePhoneBook(entry.number, entry._id)} style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }} />
                                                             <div className="tooltip">Create Lead</div>
                                                         </div>
                                                     </td>
-
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </Table>
+
                                 ) : (
                                     <p style={{ textAlign: 'center' }} className='mt-5' >No Data Available</p>
                                 )}
+                            </div>
+
+                            {/* Pagination Controls */}
+                            <div className="pagination-controls" style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                                <button onClick={handlePrevPage} disabled={currentPage === 1} className="btn btn-secondary">
+                                    Previous
+                                </button>
+                                <span style={{ margin: '0 10px' }}>Page {currentPage} of {Math.ceil(filteredPhonebookData.length / itemsPerPage)}</span>
+                                <button onClick={handleNextPage} disabled={currentPage === Math.ceil(filteredPhonebookData.length / itemsPerPage)} className="btn btn-secondary">
+                                    Next
+                                </button>
                             </div>
                         </Card>
 

@@ -704,31 +704,33 @@ router.get('/rejected-leads', isAuth, async (req, res) => {
             })
             .populate({
                 path: 'products',
-                select: 'name'
+                select: 'name' 
             })
             .populate({
                 path: 'client',
+                select: 'name phone'
+            }) 
+            .populate({
+                path: 'branch', 
                 select: 'name'
             })
-            .populate({
-                path: 'branch', // Include branch population
-                select: 'name'   // Adjust selection as needed to include relevant branch info
-            })
-            .select('_id pipeline_id product product_stage client branch reject_reason'); // Include branch in select
+            .select('_id pipeline_id product product_stage client branch reject_reason company_Name'); // Ensure company_Name is selected
 
         if (leads.length === 0) {
             return res.status(404).json({ message: 'No rejected leads found' });
         }
 
         // Map through leads to create an array of detailed lead objects
-        const leadDetails = leads.map(lead => ({
+        const leadDetails = leads.map(lead => ({ 
             id: lead._id,
             pipelineName: lead.pipeline_id?.name || null,
             productStage: lead.product_stage?.name || null,
             productName: lead.products?.name || null,
             clientName: lead.client?.name || null,
-            branchName: lead.branch?.name || null, // Add branch name to the response
-            reject_reason: lead.reject_reason || null, // Add reject_reason to the response
+            branchName: lead.branch?.name || null,
+            companyName: lead.company_Name || null, // Ensure company_Name is mapped here
+            reject_reason: lead.reject_reason || null,
+            phone: lead.client?.phone || null,
         }));
 
         res.status(200).json({ leadDetails });
@@ -737,6 +739,8 @@ router.get('/rejected-leads', isAuth, async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
+
+
 
 router.post('/check-client-phone', isAuth, async (req, res) => {
     try {

@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { AiOutlineEye } from "react-icons/ai";
@@ -54,6 +52,9 @@ const HodPhoneBook = () => {
     const [insertedNumbers, setInsertedNumbers] = useState([]);
     const [skippedNumbers, setSkippedNumbers] = useState([]);
     const [message, setMessage] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const entriesPerPage = 10;
+    const totalPages = Math.ceil(filteredPhonebookData.length / entriesPerPage);
     const navigate = useNavigate();
 
     const allowedRoles = [
@@ -340,6 +341,23 @@ const HodPhoneBook = () => {
         setPhoneID(id)
     }
 
+    // Determine the entries to show on the current page
+    const indexOfLastEntry = currentPage * entriesPerPage;
+    const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
+    const currentEntries = filteredPhonebookData.slice(indexOfFirstEntry, indexOfLastEntry);
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
     return (
         <>
             {/* <Navbar /> */}
@@ -416,14 +434,15 @@ const HodPhoneBook = () => {
                                     ) : hasAccess ? (
                                         filteredPhonebookData.length > 0 ? (
 
-                                            <Table hover bordered responsive className='mt-3 table_main_container' size='md' >
+                                            <Table hover bordered responsive className='mt-3 table_main_container' size='md'>
                                                 <thead style={{ backgroundColor: '#f8f9fd' }}>
-                                                    <tr className="teble_tr_class"
+                                                    <tr
+                                                        className="teble_tr_class"
                                                         style={{
-                                                            backgroundColor: '#e9ecef', // Light background color for the row
-                                                            color: '#343a40', // Dark text color
-                                                            borderBottom: '2px solid #dee2e6', // Bottom border for rows
-                                                            transition: 'background-color 0.3s ease', // Smooth transition for hover effect
+                                                            backgroundColor: '#e9ecef',
+                                                            color: '#343a40',
+                                                            borderBottom: '2px solid #dee2e6',
+                                                            transition: 'background-color 0.3s ease',
                                                         }}
                                                     >
                                                         <th className="equal-width" style={{ backgroundColor: '#f8f9fd' }}>User</th>
@@ -434,22 +453,12 @@ const HodPhoneBook = () => {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {filteredPhonebookData.map((entry, index) => (
+                                                    {currentEntries.map((entry, index) => (
                                                         <tr key={index}>
-                                                            <td
-                                                                className='table_td_class'
-                                                            >{entry.user.name}</td>
-                                                            <td
-                                                                className='table_td_class'
-                                                            >{entry.pipeline.name}</td>
-                                                            <td
-                                                                className='table_td_class'
-                                                            >{entry.number}</td>
-                                                            <td
-                                                                className='table_td_class'
-                                                            >
-                                                                {entry.calstatus}
-                                                            </td>
+                                                            <td className='table_td_class'>{entry.user.name}</td>
+                                                            <td className='table_td_class'>{entry.pipeline.name}</td>
+                                                            <td className='table_td_class'>{entry.number}</td>
+                                                            <td className='table_td_class'>{entry.calstatus}</td>
                                                             <td style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px' }}>
                                                                 {dropdownEntry && dropdownEntry._id === entry._id ? (
                                                                     <Dropdown>
@@ -460,11 +469,9 @@ const HodPhoneBook = () => {
                                                                             <Dropdown.Item onClick={() => handleCallStatusChange('Req to call')}>Req to call</Dropdown.Item>
                                                                             <Dropdown.Item onClick={() => handleCallStatusChange('Interested')}>Interested</Dropdown.Item>
                                                                             <Dropdown.Item onClick={() => handleCallStatusChange('Rejected')}>Rejected</Dropdown.Item>
-                                                                            <Dropdown.Item onClick={() => handleCallStatusChange('Convert to Lead')}>Convert to Lead</Dropdown.Item>
                                                                         </Dropdown.Menu>
                                                                     </Dropdown>
                                                                 ) : (
-
                                                                     <div className='editAction'>
                                                                         <FiEdit2
                                                                             onClick={() => setDropdownEntry(entry)}
@@ -473,7 +480,6 @@ const HodPhoneBook = () => {
                                                                         <div className="tooltip">Edit Status</div>
                                                                     </div>
                                                                 )}
-
                                                                 <div className='addAction'>
                                                                     <MdAdd
                                                                         onClick={() => handleAddCommentClick(entry)}
@@ -481,14 +487,18 @@ const HodPhoneBook = () => {
                                                                     />
                                                                     <div className="tooltip">Add Comments</div>
                                                                 </div>
-
                                                                 <div className='viewAction'>
-                                                                    <AiOutlineEye onClick={() => handleViewCommentsClick(entry)} style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }} />
+                                                                    <AiOutlineEye
+                                                                        onClick={() => handleViewCommentsClick(entry)}
+                                                                        style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }}
+                                                                    />
                                                                     <div className="tooltip">View Comments</div>
                                                                 </div>
-
                                                                 <div className='viewAction'>
-                                                                    <IoOpenOutline onClick={() => HandleCreatePhoneBook(entry.number, entry._id)} style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }} />
+                                                                    <IoOpenOutline
+                                                                        onClick={() => HandleCreatePhoneBook(entry.number, entry._id)}
+                                                                        style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }}
+                                                                    />
                                                                     <div className="tooltip">Create Lead</div>
                                                                 </div>
                                                             </td>
@@ -503,6 +513,20 @@ const HodPhoneBook = () => {
                                     ) : (
                                         <p>You do not have access to this page.</p>
                                     )}
+
+
+                                    {/* Pagination controls */}
+                                    <div className="pagination-controls" style={{ display: 'flex', justifyContent: 'center', marginTop: '15px' }}>
+                                        <Button variant="secondary" onClick={handlePreviousPage} disabled={currentPage === 1}>
+                                            Previous
+                                        </Button>
+                                        <span style={{ padding: '0 15px', lineHeight: '38px' }}>
+                                            Page {currentPage} of {totalPages}
+                                        </span>
+                                        <Button variant="secondary" onClick={handleNextPage} disabled={currentPage === totalPages}>
+                                            Next
+                                        </Button>
+                                    </div>
                                 </div>
 
                                 {/* View Comments Modal */}
@@ -710,7 +734,3 @@ const HodPhoneBook = () => {
 };
 
 export default HodPhoneBook;
-
-
- 
-

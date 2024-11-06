@@ -3,12 +3,11 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { Dropdown, Menu } from 'antd';
 import Navbar from '../Components/navbar/Navbar';
-import { Container, Row, Col, Button, Card, Form, Modal, Image, Spinner, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Button, Card, Form, Modal, Image, Spinner, Alert, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import Sidebar from '../Components/sidebar/Sidebar';
 import { Link } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import './Dashboard.css';
-import LeadSearch from '../Components/LeadSearch';
 import { AiFillDelete } from "react-icons/ai";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { BiSolidLabel } from "react-icons/bi";
@@ -30,6 +29,7 @@ import WhatsappNotification from '../Components/whatsappNotification/WhatsappNot
 import CreateLead from '../Components/createLead/CreateLead';
 import { RxCross1 } from "react-icons/rx";
 import { MdClear } from "react-icons/md";
+import rejected_image from '../Assets/rejected_image.png'
 
 const CeoDashboard = () => {
     const token = useSelector((state) => state.loginSlice.user?.token);
@@ -208,11 +208,7 @@ const CeoDashboard = () => {
         debouncedSearch();
     }, [selectedBranchId, selectedProductId, selectedPipeline, selectedUsers, selectedLeadType, selectedSource, createdAtStart, createdAtEnd]);
 
-
-
-
     // END data
-    // End
 
     const canEditLead = permissions?.includes('edit_lead');
     const canMoveLead = permissions?.includes('move_lead');
@@ -390,7 +386,9 @@ const CeoDashboard = () => {
     };
 
     if (loading) {
-        return <div>Loading...</div>;
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Spinner animation="grow" />
+        </div>;
     }
 
     const openRejectedLead = (id) => {
@@ -710,38 +708,6 @@ const CeoDashboard = () => {
         }
     };
 
-    // const handleSearch = async (filters) => {
-    //     setIsFetchingLeads(true);
-    //     try {
-
-    //         const response = await axios.get(`/api/leads/search-leads`, {
-    //             params: {
-    //                 pipeline: filters.pipeline,
-    //                 userId: filters.userId,
-    //                 created_at_start: filters.created_at_start,
-    //                 created_at_end: filters.created_at_end,
-    //                 products: filters.product,
-    //                 lead_type: filters.lead_type,
-    //                 source: filters.source,
-    //                 client: filters.client,
-    //                 branch: filters.branch,
-    //             },
-    //             headers: {
-    //                 Authorization: `Bearer ${token}`,
-    //             },
-    //         });
-
-    //         setLeads(response.data.leads);
-    //         organizeLeadsByStage(response.data.leads);
-    //     } catch (error) {
-    //         console.error('Error searching leads:', error);
-    //     }
-    //     finally {
-    //         setIsFetchingLeads(false); // Stop loading
-    //     }
-    // };
-
-
     return (
         <div>
             {/* <Navbar /> */}
@@ -750,8 +716,6 @@ const CeoDashboard = () => {
                     <Col xs={12} md={12} lg={2}>
                         <Sidebar />
                     </Col>
-
-
 
                     <Col xs={12} md={12} lg={10}>
                         <Card className='leads_main_cards'>
@@ -828,10 +792,8 @@ const CeoDashboard = () => {
                                 <div style={{ cursor: 'pointer' }} className='clear_filter_btn' onClick={handleClearFilters}>
                                     <MdClear style={{ color: 'white', fontSize: '25px' }} />
                                 </div>
-                                {/* <Button onClick={handleSearch}>Search</Button> */}
                             </div>
-                            {/* <LeadSearch onSearch={handleSearch} fetchLeadsData={fetchLeads} selectedProductId={selectedProductId} selectedBranchId={selectedBranchId} /> */}
-                            {/* </div> */}
+
 
                             <Row>
                                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', justifyContent: 'flex-end' }}>
@@ -909,13 +871,13 @@ const CeoDashboard = () => {
 
                             {isFetchingLeads ? ( // Show spinner while fetching leads
                                 <div className="text-center my-5">
-                                    <Spinner animation="border" role="status"></Spinner>
+                                    <Spinner animation="grow" role="status"></Spinner>
                                 </div>
                             ) : (
 
                                 <DragDropContext onDragEnd={onDragEnd}>
                                     <div className="stages-wrapper d-flex overflow-auto mt-3" style={{ maxHeight: '70vh', overflowX: 'auto' }}>
-                                        {stages.length > 0 ? (
+                                        {Array.isArray(stages) && stages.length > 0 ? (
                                             // Sort stages by the 'order' field before rendering
                                             stages
                                                 .sort((a, b) => a.order - b.order)
@@ -954,7 +916,8 @@ const CeoDashboard = () => {
                                                                                         {/* Labels Section */}
                                                                                         <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', marginTop: '-27px' }}>
                                                                                             {lead.labels.map((labelname, index) => {
-                                                                                                let backgroundColor = '';
+                                                                                                console.log(labelname, 'labelname')
+                                                                                                let backgroundColor = labelname.color || '#ccc';
                                                                                                 switch (labelname.color) {
                                                                                                     case 'success':
                                                                                                         backgroundColor = '#6fd943';
@@ -990,7 +953,7 @@ const CeoDashboard = () => {
                                                                                                                 cursor: 'pointer'
                                                                                                             }}
                                                                                                         >
-                                                                                                            <p style={{ color: '#fff', margin: 0, fontSize: '11px' }}>{labelname.name}</p>
+                                                                                                            <p style={{ color: '#000', margin: 0, fontSize: '11px' }}>{labelname.name}</p>
                                                                                                         </div>
                                                                                                     </div>
                                                                                                 );
@@ -1023,13 +986,24 @@ const CeoDashboard = () => {
                                                                                                         ? `/images/${leadImage?.image}`
                                                                                                         : default_image;
                                                                                                     return (
-                                                                                                        <Image
+                                                                                                        <OverlayTrigger
                                                                                                             key={index}
-                                                                                                            src={imageSrc}
-                                                                                                            alt={`Lead ${index}`}
-                                                                                                            className="image_control_discussion_main_lead"
-                                                                                                            style={{ cursor: 'pointer' }}
-                                                                                                        />
+                                                                                                            placement="top" // Change this to 'bottom', 'left', or 'right' as needed
+                                                                                                            overlay={
+                                                                                                                <Tooltip id={`tooltip-${index}`}>
+                                                                                                                    {leadImage.name}
+                                                                                                                </Tooltip>
+                                                                                                            }
+                                                                                                        >
+                                                                                                            <div style={{ display: 'inline-block', cursor: 'pointer' }}>
+                                                                                                                <Image
+                                                                                                                    src={imageSrc}
+                                                                                                                    alt={`Lead ${index}`}
+                                                                                                                    className="image_control_discussion_main_lead"
+                                                                                                                // style={{ width: '100px', height: '100px' }} 
+                                                                                                                />
+                                                                                                            </div>
+                                                                                                        </OverlayTrigger>
                                                                                                     );
                                                                                                 })}
                                                                                         </div>
@@ -1326,45 +1300,64 @@ const CeoDashboard = () => {
                     show={phoneNumberSuccess}
                     onHide={() => setPhoneumberSuccess(false)}
                 >
-                    <Modal.Body>
-                        <Card body className='lead_search_card' >
-                            <h4>Lead Already Exist</h4>
+                    <Modal.Body style={{backgroundColor:'#EFEFEF', borderRadius:'14px'}} >
+                        <div >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className='mb-2'>
+                                <h4>Lead Already Exist</h4>
+                                {
+                                    apiData && apiData.isRejected ?
+                                        <Image src={rejected_image} alt='rejected_image' style={{ width: '100px', height: '100px', borderRadius: '50%' }} />
+                                        : null
+                                }
+                            </div>
                             {
                                 apiData && (
                                     <>
-                                        <p>
-                                            {`Name : ${apiData.companyName ? apiData.companyName : apiData.client.name}`}
-                                        </p>
+                                        <Row>
+                                            <Col md={6} lg={6}>
+                                                <Card className='lead_exist_status'>
+                                                    <strong className='text-center mb-2' >Client Details</strong>
+                                                    <p>
+                                                        {`Name : ${apiData.companyName ? apiData.companyName : apiData.client.name}`}
+                                                    </p>
 
-                                        <p>
-                                            {`Emirates ID : ${apiData.client.e_id ? apiData.client.e_id : 'No Emirates ID'}`}
-                                        </p>
+                                                    <p>
+                                                        {`Emirates ID : ${apiData.client.e_id ? apiData.client.e_id : 'No Emirates ID'}`}
+                                                    </p>
 
-                                        <p>
-                                            {`Email : ${apiData.client.email ? apiData.client.email : 'No Email'}`}
-                                        </p>
+                                                    <p>
+                                                        {`Email : ${apiData.client.email ? apiData.client.email : 'No Email'}`}
+                                                    </p>
+                                                </Card>
+                                            </Col>
 
-                                        <p>
-                                            {`Product :  ${apiData.products.name}`}
-                                        </p>
+                                            <Col md={6} lg={6}>
+                                                <Card className='lead_exist_status'>
+                                                    <strong className='text-center mb-2' >Lead Details</strong>
+                                                    <p>
+                                                        {`Product :  ${apiData.products.name}`}
+                                                    </p>
 
-                                        <p>
-                                            {`PipeLine :  ${apiData.pipeline.name}`}
-                                        </p>
+                                                    <p>
+                                                        {`PipeLine :  ${apiData.pipeline.name}`}
+                                                    </p>
 
-                                        <p>
-                                            {`Product Stage :  ${apiData.productStage.name}`}
-                                        </p>
+                                                    <p>
+                                                        {`Product Stage :  ${apiData.productStage.name}`}
+                                                    </p>
 
-                                        <p>
-                                            {`Lead Type :  ${apiData.leadType.name}`}
-                                        </p>
+                                                    <p>
+                                                        {`Lead Type :  ${apiData.leadType.name}`}
+                                                    </p>
 
-                                        <p>
-                                            {`Source :  ${apiData.source.name}`}
-                                        </p>
+                                                    <p>
+                                                        {`Source :  ${apiData.source.name}`}
+                                                    </p>
+                                                </Card>
+                                            </Col>
+                                        </Row>
 
-                                        <p>
+                                        <p className='mt-3' >
                                             {`Lead Details :  ${apiData.description}`}
                                         </p>
                                     </>
@@ -1379,7 +1372,7 @@ const CeoDashboard = () => {
                                     )
                                 }
                             </div>
-                        </Card>
+                        </div>
                     </Modal.Body>
                 </Modal>
 

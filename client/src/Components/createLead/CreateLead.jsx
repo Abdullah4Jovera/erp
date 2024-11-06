@@ -22,6 +22,7 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
     const leadTypeSlice = useSelector(state => state.loginSlice.leadType);
     const productNamesSlice = useSelector(state => state.loginSlice.productNames);
     const pipelineSlice = useSelector(state => state.loginSlice.pipelines);
+    console.log(pipelineSlice, 'filteredPipelines')
     const branchUserSlice = useSelector(state => state.loginSlice.user?.branch);
     const pipelineUserSlice = useSelector(state => state.loginSlice.user?.pipeline);
     const productUserSlice = useSelector(state => state.loginSlice.user?.products);
@@ -157,7 +158,7 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
             const response = await axios.get(`/api/productstages/${selectedProduct}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setProductStage(response.data);
+            setProductStage(Array.isArray(response.data ? response.data : []));
         } catch (error) {
             console.error('Error fetching product stages:', error);
         }
@@ -1111,8 +1112,8 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
                                 </Form.Group>
                             </Col>
 
-                                {leadType.name === "others" && source.name === "Third Party" && (
-                            <Col md={4}>
+                            {leadType.name === "others" && source.name === "Third Party" && (
+                                <Col md={4}>
                                     <Form.Group className="mb-3" controlId="thirdparty">
                                         <Form.Label>Third Party Name</Form.Label>
                                         <Form.Control
@@ -1123,8 +1124,8 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
                                             onChange={handlethirdpartyInputChange}
                                         />
                                     </Form.Group>
-                            </Col>
-                                )}
+                                </Col>
+                            )}
 
                             {(userRole === 'TS Agent' || userRole === 'TS Team Leader') && (
                                 <Col md={4} >

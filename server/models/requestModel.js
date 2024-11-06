@@ -52,7 +52,7 @@ const leadRequestSchema = new mongoose.Schema({
         default: false,
     },
 
-    delStatus: {
+    delStatus: { 
         type: Boolean,
         default: false,
     },

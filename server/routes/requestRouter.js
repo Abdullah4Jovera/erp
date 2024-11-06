@@ -12,6 +12,37 @@ const Product = require('../models/productModel');
 const mongoose = require('mongoose');
 
 
+// Soft delete a lead request
+router.put('/soft-delete/:id', isAuth, async (req, res) => {
+    const requestId = req.params.id;
+    const userId = req.user._id;
+
+    try {
+        const leadRequest = await LeadRequest.findById(requestId);
+
+        if (!leadRequest) {
+            return res.status(404).json({ message: 'Lead request not found.' });
+        }
+
+        if (leadRequest.sender.toString() !== userId.toString() && !leadRequest.receivers.includes(userId)) {
+            return res.status(403).json({ message: 'You are not authorized to delete this request.' });
+        }
+
+        // Set delStatus to true for soft delete
+        leadRequest.delStatus = true;
+        await leadRequest.save();
+
+        res.status(200).json({
+            message: 'Lead request soft deleted successfully.',
+            data: leadRequest,
+        });
+    } catch (error) {
+        console.error('Error soft deleting lead request:', error);
+        res.status(500).json({ message: 'Error soft deleting lead request.', error: error.message });
+    }
+});
+
+
 // New route to update the 'read' status of a LeadRequest
 router.put('/mark-read/:id', isAuth, async (req, res) => {
     const requestId = req.params.id;
@@ -114,10 +145,7 @@ router.post('/create-request', isAuth, async (req, res) => {
     }
 });
 
-
- 
-
-// Get all lead requests for the authenticated user
+// Get all lead requests for the authenticated user, excluding soft-deleted requests
 router.get('/my-requests', isAuth, async (req, res) => {
     const userId = req.user._id;
 
@@ -126,26 +154,26 @@ router.get('/my-requests', isAuth, async (req, res) => {
             $or: [
                 { sender: userId },
                 { receivers: userId }
-            ]
+            ],
+            delStatus: false, // Exclude soft-deleted requests
         })
-            .populate('sender receivers', 'name email image') // Populate sender and receivers with name and email
+            .populate('sender receivers', 'name email image')
             .populate({
-                path: 'lead_id', 
-                select: 'client pipeline_id products product_stage branch', // Select necessary fields from lead_id
+                path: 'lead_id',
+                select: 'client pipeline_id products product_stage branch',
                 populate: [
-                    { path: 'client', select: 'name' }, // Populate client with name
-                    { path: 'pipeline_id', select: 'name' }, // Populate pipeline_id with name
-                    { path: 'products', select: 'name price' }, // Populate products with name and price
-                    { path: 'product_stage', select: 'name' }, // Populate product_stage with name
-                    { path: 'branch', select: 'name' } // Populate branch with name and location
+                    { path: 'client', select: 'name' },
+                    { path: 'pipeline_id', select: 'name' },
+                    { path: 'products', select: 'name price' },
+                    { path: 'product_stage', select: 'name' },
+                    { path: 'branch', select: 'name' }
                 ]
             })
-            // Populating fields directly in LeadRequest schema
-            .populate('pipeline_id', 'name') // Populate pipeline_id in the LeadRequest schema
-            .populate('product_stage', 'name') // Populate product_stage in the LeadRequest schema
-            .populate('products', 'name') // Populate products in the LeadRequest schema
-            .populate('branch', 'name') // Populate branch in the LeadRequest schema
-            .populate('actionChangedBy', 'name image'); // Populate actionChangedBy with name and image
+            .populate('pipeline_id', 'name')
+            .populate('product_stage', 'name')
+            .populate('products', 'name')
+            .populate('branch', 'name')
+            .populate('actionChangedBy', 'name image');
 
         if (!userRequests || userRequests.length === 0) {
             return res.status(404).json({ message: 'No lead requests found for this user.' });

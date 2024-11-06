@@ -10,8 +10,6 @@ import { logoutUser, fetchUpdatedPermission, refreshToken, logout } from '../../
 import { Button, Image, Modal } from 'react-bootstrap';
 import io from 'socket.io-client';
 import defaultImage from '../../Assets/default_image.jpg'
-
-
 const Sidebar = () => {
     const [requests, setRequests] = useState([]);
     const token = useSelector(state => state.loginSlice.user?.token);
@@ -29,7 +27,6 @@ const Sidebar = () => {
     const [socket, setSocket] = useState(null);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
     const [openDropdown, setOpenDropdown] = useState(''); // Track the currently open dropdown
     const userID = useSelector(state => state.loginSlice.user?._id);
 
@@ -45,9 +42,7 @@ const Sidebar = () => {
         { to: '/leadapiconfig', label: 'Lead Api Config', icon: <FaCog style={{ color: '#ffa000', marginRight: '8px', fontSize: '20px' }} /> },
         { to: '/session', label: 'Session', icon: <FaCog style={{ color: '#ffa000', marginRight: '8px', fontSize: '20px' }} /> },
         { to: '/contractstages', label: 'Contract Stages', icon: <FaCog style={{ color: '#ffa000', marginRight: '8px', fontSize: '20px' }} /> },
-        // { to: '/request', label: 'Lead Request', icon: <FaCog style={{ color: '#ffa000', marginRight: '8px', fontSize: '20px' }} /> },
     ];
-
     useEffect(() => {
         if (userID) {
             const newSocket = io(``, {
@@ -55,7 +50,6 @@ const Sidebar = () => {
                 transports: ['websocket'],
             });
             setSocket(newSocket);
-
             // Handle incoming notifications
             newSocket.on('notification', (data) => {
                 setNotifications(prevNotifications => [
@@ -102,17 +96,14 @@ const Sidebar = () => {
                     },
                 }
             );
-
             if (response.data && response.data.data) {
                 const fetchedRequests = response.data.data;
                 setRequests(fetchedRequests);
-
                 // Count pending requests where the user is a receiver
                 const pending = fetchedRequests.filter(request =>
                     request.receivers.some(receiver => receiver._id === userId) && request.action === 'Pending'
                 );
                 setPendingCount(pending.length);
-
                 // Count accepted or declined requests where the sender is the logged-in user and read is false
                 const actionTaken = fetchedRequests.filter(request =>
                     request.sender._id === userId &&
@@ -120,13 +111,11 @@ const Sidebar = () => {
                     request.read === false // Only count if read is false
                 );
                 setActionCount(actionTaken.length);
-
             } else {
                 setRequests([]);
                 setPendingCount(0);
                 setActionCount(0);  // Reset actionCount when no requests
             }
-
         } catch (err) {
             setError(err.response?.data?.message || 'Error fetching requests');
         } finally {
@@ -182,8 +171,6 @@ const Sidebar = () => {
 
     const unreadNotifications = notifications.filter(notification => !notification.read);
 
-
-
     return (
         <div className='sidebar_main_container'>
             <div className='sidebar_links'>
@@ -208,6 +195,7 @@ const Sidebar = () => {
                                         <Link to={'/request'} className='sidebar_link'>
                                             Lead Requests {actionCount > 0 && `(${actionCount})`} {pendingCount > 0 && `(${pendingCount})`}
                                         </Link>
+                                        <Link to={'/createlabels'} className='sidebar_link'>Label Management</Link>
                                     </>
                                 )}
                                 {(userRole === 'HOD' || userRole === 'Manager') && (
@@ -216,6 +204,7 @@ const Sidebar = () => {
                                         <Link to={'/request'} className='sidebar_link'>
                                             Lead Requests {actionCount > 0 && `(${actionCount})`} {pendingCount > 0 && `(${pendingCount})`}
                                         </Link>
+                                        <Link to={'/createlabels'} className='sidebar_link'>Label Management</Link>
                                     </>
                                 )}
 
@@ -254,13 +243,6 @@ const Sidebar = () => {
                                     </div>
                                 )}
 
-                                {/* {userRole === 'HOD' && (
-                                    <div className='sidebar_section'>
-                                        <Link to={'/request'} className='sidebar_link'>
-                                            Lead Requests {actionCount > 0 && `(${actionCount})`} {pendingCount > 0 && `(${pendingCount})`}
-                                        </Link>
-                                    </div>
-                                )} */}
                                 <Link to={'/convertedlead'} className='sidebar_link'>Lead Converted Numbers</Link>
                                 <Link to={'/blocklist'} className='sidebar_link'>BlockList Numbers</Link>
                             </div>

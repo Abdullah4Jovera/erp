@@ -19,7 +19,7 @@ const LeadSchema = new Schema({
   discussions: [{ type: Schema.Types.ObjectId, ref: 'LeadDiscussion' }],
   files: [{ type: Schema.Types.ObjectId, ref: 'File' }],
   labels: [{ type: Schema.Types.ObjectId, ref: 'Label'}],
-  order: { type: String },
+  order: { type: String }, 
   thirdpartyname: { type: String },
   deal_stage: { type: String }, 
   is_active: { type: Boolean, default: true },

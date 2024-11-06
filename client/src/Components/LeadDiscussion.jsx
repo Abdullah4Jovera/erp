@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Card, Container, Row, Col, Button, Form, Image } from 'react-bootstrap';
+import { Card, Container, Row, Col, Button, Form, Image, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { IoMdAdd } from "react-icons/io";
 import { useSelector } from 'react-redux';
 import axios from 'axios';
@@ -8,7 +8,6 @@ import WhatsAppChatBox from './whatsappChatBox/WhatsAppChatBox';
 import '../Pages/style.css';
 
 const LeadDiscussion = ({ id, singleLead, fetchSingleLead }) => {
-    console.log(singleLead.is_reject, 'singleleadisreject')
     const token = useSelector(state => state.loginSlice.user?.token);
     const [discussionText, setDiscussionText] = useState('');
     const [error, setError] = useState('');
@@ -16,6 +15,7 @@ const LeadDiscussion = ({ id, singleLead, fetchSingleLead }) => {
     const textareaRef = useRef(null);
     const chatHistoryRef = useRef(null); // Ref to the chat history container
     const chatEndRef = useRef(null); // Ref to scroll to the end of chat
+
     const handleInputChange = (e) => {
         const value = e.target.value;
         setDiscussionText(value);
@@ -45,12 +45,12 @@ const LeadDiscussion = ({ id, singleLead, fetchSingleLead }) => {
         } catch (error) {
             console.log(error, 'err');
         }
-    }
+    };
 
     // Scroll to the top of the chat on first render
     useEffect(() => {
         if (chatHistoryRef.current) {
-            chatHistoryRef.current.scrollTop = 0; // Set scroll to top when component first renders
+            chatHistoryRef.current.scrollTop = 0; 
         }
     }, []);
 
@@ -60,8 +60,6 @@ const LeadDiscussion = ({ id, singleLead, fetchSingleLead }) => {
     //         chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     //     }
     // }, [discussions]);
-
-
 
     return (
         <div>
@@ -88,7 +86,12 @@ const LeadDiscussion = ({ id, singleLead, fetchSingleLead }) => {
                                     return (
                                         <div key={index}>
                                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                <Image src={imageSrc} alt="image" className='image_control_discussion' />
+                                                <OverlayTrigger
+                                                    placement="top"
+                                                    overlay={<Tooltip id={`tooltip-${index}`}>{leadDiscussion.created_by.name}</Tooltip>}
+                                                >
+                                                    <Image src={imageSrc} alt="image" className='image_control_discussion' />
+                                                </OverlayTrigger>
                                                 <p className='mb-0' style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>
                                                     {leadDiscussion.created_by.name}
                                                 </p>

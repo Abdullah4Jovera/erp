@@ -11,21 +11,23 @@ const LabelSchema = new mongoose.Schema({
         // required: true,
     },
     pipeline_id: 
-        {type: String}
-        // { type: Schema.Types.ObjectId, ref: 'Pipeline',  }
+        // {type: String}
+        { type: Schema.Types.ObjectId, ref: 'Pipeline',  }
         
     ,
     created_by: {
-        type: String
+        type: String 
     },
     created_at: {
         type: Date,
         default: Date.now,
     },
-    updated_at: {
-        type: Date,
+    updated_at: { 
+        type: Date, 
         default: Date.now,
     },
+    delstatus: { type: Boolean, default: false },
+
 });
 
 // Middleware to update 'updated_at' field before each save

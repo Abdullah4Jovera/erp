@@ -54,7 +54,8 @@
     "add_user_lead",
     "remove_user_lead",
     "lead_labels",
-    "unassigned_lead"
+    "unassigned_lead",
+    "label_management"
   ],
   "Team Leader": [
     "check_lead",
@@ -95,7 +96,8 @@
     "reject_deal",
     "file_upload_in_deal",
     "file_download_from_deal",
-    "file_delete_from_deal"
+    "file_delete_from_deal",
+    "label_management"
   ],
   "TS Agent": [
     "show_phonebook",
@@ -201,6 +203,7 @@
     "move_lead",
     "transfer_lead",
     "edit_lead",
-    "unassigned_lead"
+    "unassigned_lead",
+    "label_management"
   ]
 }

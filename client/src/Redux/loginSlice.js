@@ -42,7 +42,7 @@ export const fetchPipelines = createAsyncThunk(
     'pipeline/fetchPipelines',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axios.get(`/api/pipelines/get-pipelines`);
+            const response = await axios.get(`/api/pipelines/get-pipelines`,);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response.data);

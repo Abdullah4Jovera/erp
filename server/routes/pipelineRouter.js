@@ -1,10 +1,11 @@
 const express = require('express');
 const Pipeline = require('../models/pipelineModel');
 const { isAuth, hasRole } = require('../utils');
+const hasPermission = require('../hasPermission');
 const router = express.Router();
 
 // Route to get all pipelines
-router.get('/get-pipelines', async (req, res) => {
+router.get('/get-pipelines',  async (req, res) => {
   try {
     const pipelines = await Pipeline.find(); 
     res.status(200).json(pipelines);
@@ -15,7 +16,7 @@ router.get('/get-pipelines', async (req, res) => {
 }); 
 
 // Route to add a new pipeline
-router.post('/create-pipeline', isAuth, hasRole(['Super Admin', 'Developer']) ,async (req, res) => { 
+router.post('/create-pipeline', isAuth,hasPermission(['app_management']),async (req, res) => { 
   const { name, created_by } = req.body;
 
   if (!name) {
@@ -39,7 +40,7 @@ router.post('/create-pipeline', isAuth, hasRole(['Super Admin', 'Developer']) ,a
 });
 
 // Route to update a pipeline
-router.put('/update-pipeline/:id', isAuth, hasRole(['Super Admin', 'Developer']), async (req, res) => {
+router.put('/update-pipeline/:id', isAuth,hasPermission(['app_management']), async (req, res) => {
   const { id } = req.params;
   const { name, created_by, delstatus } = req.body;
 
@@ -66,7 +67,7 @@ router.put('/update-pipeline/:id', isAuth, hasRole(['Super Admin', 'Developer'])
 });
 
 // Route to soft delete a pipeline
-router.put('/delete-pipeline/:id', isAuth,hasRole(['Super Admin', 'Developer']), async (req, res) => {
+router.put('/delete-pipeline/:id', isAuth,hasPermission(['app_management']), async (req, res) => {
   const { id } = req.params;
 
   try {

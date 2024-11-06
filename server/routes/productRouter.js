@@ -1,10 +1,11 @@
 const express = require('express');
 const Product = require('../models/productModel'); // Adjust the path as necessary
-const { isAuth, hasRole } = require('../utils');
+const { isAuth } = require('../utils');
+const hasPermission = require('../hasPermission');
 const router = express.Router();
 
 // Create a new product
-router.post('/create-new-product' ,isAuth,hasRole(['Super Admin', 'Developer']), async (req, res) => {
+router.post('/create-new-product' ,isAuth,hasPermission(['app_management']), async (req, res) => {
     try {
         const { name, pipeline_id } = req.body; // Include pipeline_id in request
 
@@ -24,7 +25,7 @@ router.post('/create-new-product' ,isAuth,hasRole(['Super Admin', 'Developer']),
 });
 
 // Get all products
-router.get('/get-all-products', async (req, res) => {
+router.get('/get-all-products',  async (req, res) => {
     try {
         // Find all products that are not marked as deleted and populate pipeline_id
         const products = await Product.find({ delStatus: false }).populate('pipeline_id'); 
@@ -52,7 +53,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update a product by ID
-router.put('/:id', isAuth,hasRole(['Super Admin', 'Developer']),async (req, res) => {
+router.put('/:id', isAuth,hasPermission(['app_management']),async (req, res) => {
     try {
         const { name, pipeline_id } = req.body; // Include pipeline_id in request
 
@@ -80,7 +81,7 @@ router.put('/:id', isAuth,hasRole(['Super Admin', 'Developer']),async (req, res)
 });
 
 // "Delete" a product by ID (set delStatus to true)
-router.put('/delete-product/:id', isAuth,hasRole(['Super Admin', 'Developer']), async (req, res) => {
+router.put('/delete-product/:id', isAuth,hasPermission(['app_management']), async (req, res) => {
     try {
         // Set delStatus to true instead of deleting the product
         const updatedProduct = await Product.findByIdAndUpdate(

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Modal, Button, Form, Container, Row, Col, Image } from 'react-bootstrap';
+import { Card, Table, Modal, Button, Form, Container, Row, Col, Image,OverlayTrigger, Tooltip } from 'react-bootstrap';
 import '../Pages/style.css';
 import { RiDeleteBinLine } from "react-icons/ri";
 import { IoMdAdd } from "react-icons/io";
@@ -12,7 +12,6 @@ import { TiDeleteOutline } from "react-icons/ti";
 
 const LeadUsers = ({ singleLead, fetchSingleLead }) => {
     const { selected_users = [], pipeline_id } = singleLead;
-    console.log(selected_users,'selected_users')
     const { id } = useParams();
     const [userModal, setUserModal] = useState(false);
     const [deleteModal, setDeleteModal] = useState(false);
@@ -185,20 +184,34 @@ const LeadUsers = ({ singleLead, fetchSingleLead }) => {
                                                     user?.role?.trim().toLowerCase() !== "company" &&
                                                     user?.role?.trim().toLowerCase() !== "hod"
                                             )
-                                            .map((user, index) => {
+                                            .map((user) => {
                                                 const imageSrc = user?.image
                                                     ? `/images/${user?.image}`
                                                     : default_image;
+
+                                                // Tooltip to display the user's name
+                                                const renderTooltip = (props) => (
+                                                    <Tooltip id="user-tooltip" {...props}>
+                                                        {user.name}
+                                                    </Tooltip>
+                                                );
+
                                                 return (
-                                                    <tr key={index} style={{ height: '50px' }}>
+                                                    <tr key={user._id} style={{ height: '50px' }}>
                                                         <td style={{ verticalAlign: 'middle' }}>
                                                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                                <Image
-                                                                    src={imageSrc}
-                                                                    alt="image_user"
-                                                                    className="image_control_discussion"
-                                                                    style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-                                                                />
+                                                                <OverlayTrigger
+                                                                    placement="top"
+                                                                    delay={{ show: 250, hide: 400 }}
+                                                                    overlay={renderTooltip}
+                                                                >
+                                                                    <Image
+                                                                        src={imageSrc}
+                                                                        alt="User"
+                                                                        className="image_control_discussion"
+                                                                        style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                                                    />
+                                                                </OverlayTrigger>
                                                                 <span style={{ fontWeight: '600' }}>{user.name}</span>
                                                             </div>
                                                         </td>

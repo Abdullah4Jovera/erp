@@ -12,6 +12,10 @@ const fs = require('fs');
 const crypto = require('crypto');
 const File = require('../models/fileModel'); // Adjust path as needed
 const multer = require('multer');
+const ServiceCommission = require('../models/serviceCommissionModel');
+const Lead = require('../models/leadModel');
+const mongoose = require('mongoose');
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -30,6 +34,48 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage }).array('files', 10); // Max 10 files at a time (you can adjust this)
+
+router.delete('/revert-contract/:id', isAuth, async (req, res) => {
+    try {
+        const contractId = req.params.id;
+
+        // Find the contract
+        const contract = await Contract.findById(contractId);
+        if (!contract) {
+            return res.status(404).json({ message: 'Contract not found' });
+        }
+
+        // Retrieve the associated lead ID and service commission ID
+        const leadId = contract.lead_id;
+        const serviceCommissionId = contract.service_commission_id;
+
+        if (!leadId) {
+            return res.status(400).json({ message: 'No associated lead ID found for this contract' });
+        }
+
+        // Delete the contract
+        await Contract.findByIdAndDelete(contractId);
+
+        // Update the lead's is_converted status to true
+        await Lead.findByIdAndUpdate(
+            leadId,
+            { is_converted: true },
+            { new: true }
+        );
+
+        // If there's an associated service commission, delete it
+        if (serviceCommissionId) {
+            await ServiceCommission.findByIdAndDelete(serviceCommissionId);
+        }
+
+        res.status(200).json({
+            message: 'Contract reverted successfully, lead updated, and service commission deleted'
+        });
+    } catch (error) {
+        console.error('Error reverting contract:', error);
+        res.status(500).json({ message: 'Error reverting contract', error });
+    }
+});
 // Route to upload files for a contract and log activities
 router.post('/upload-files/:contractId', isAuth, async (req, res) => {
     upload(req, res, async (err) => {

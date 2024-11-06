@@ -9,7 +9,7 @@ router.get('/:leadTypeId', async (req, res) => {
         const { leadTypeId } = req.params;
 
         const sources = await Source.find({ lead_type_id: leadTypeId })
-            .populate('lead_type_id', 'name') // Populate lead_type_id with name field from LeadType model
+            .populate('lead_type_id', 'name') 
             .exec();
 
         if (sources.length === 0) {
@@ -27,7 +27,7 @@ router.get('/:leadTypeId', async (req, res) => {
 router.get('/get/get-sources', async (req, res) => {
     try {
         const sources = await Source.find({ delstatus: false})
-            .populate('lead_type_id', 'name') // Populate lead_type_id with name field from LeadType model
+            .populate('lead_type_id', 'name')
             .exec();
         res.status(200).json(sources);
     } catch (error) {

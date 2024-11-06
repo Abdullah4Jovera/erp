@@ -43,7 +43,12 @@ const CEOphoneBook = () => {
     const navigate = useNavigate();
     const [phoneBookModal, setPhoneBookModal] = useState(false)
     const [phoneBookNumber, setPhoneBookNumber] = useState('')
-    const [phoneID,setPhoneID]=useState('')
+    const [phoneID, setPhoneID] = useState('')
+    const [currentPage, setCurrentPage] = useState(1);
+    const entriesPerPage = 10;
+
+    const leadsPerPage = 9;
+    const pagesToShow = 5;
 
     const calStatusOptions = [
         { value: 'Interested', label: 'Interested' },
@@ -94,18 +99,21 @@ const CEOphoneBook = () => {
         fetchData();
     }, []);
 
+    // This useEffect will filter users based on selectedPipeline
     useEffect(() => {
         if (selectedPipeline) {
-            const pipelineUsers = (users || []).filter(user => user.pipelines.includes(selectedPipeline.value));
+            const pipelineUsers = users.filter(user => user.pipelines.includes(selectedPipeline.value));
             setFilteredUsers(pipelineUsers);
         } else {
             setFilteredUsers(users);
         }
     }, [selectedPipeline, users]);
 
+    // This useEffect will handle all filtering logic
     useEffect(() => {
         let filtered = ceoPhoneBookData;
 
+        // Apply filters based on selected options
         if (selectedPipeline) {
             filtered = filtered.filter(entry => entry.pipeline._id === selectedPipeline.value);
         }
@@ -119,8 +127,9 @@ const CEOphoneBook = () => {
         }
 
         if (searchQuery) {
-            filtered = filtered.filter(entry => entry.number.toLowerCase().includes(searchQuery.toLowerCase()));
+            filtered = filtered.filter(entry => entry.number.toString().toLowerCase().includes(searchQuery.toLowerCase()));
         }
+
         if (startDate && endDate) {
             filtered = filtered.filter(entry => {
                 const entryDate = new Date(entry.updatedAt);
@@ -128,18 +137,17 @@ const CEOphoneBook = () => {
             });
         }
 
-
+        // Set the filtered data based on all active filters
         setFilteredData(filtered);
     }, [selectedPipeline, selectedUser, selectedCalStatus, searchQuery, ceoPhoneBookData, startDate, endDate]);
 
+
     if (loading) return (
         <div className="no-results mt-5" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <Spinner animation="border" role="status">
-                <span className="visually-hidden">Loading...</span>
-            </Spinner>
+            <Spinner animation="grow" style={{ color: 'white' }} role="status"></Spinner>
         </div>
     );
-    if (error) return <p>Error: {error}</p>;
+    // if (error) return <p>Error: {error}</p>;
 
     const handleViewCommentsClick = (entry) => {
         handleViewComments(entry.comments);
@@ -236,7 +244,7 @@ const CEOphoneBook = () => {
         }
 
         setDropdownEntry(null); // Hide dropdown after selecting status
-        setShowConvertModal(false); // Hide confirmation modal after updating
+        setShowConvertModal(false); // Hide confirmation modal after updating 
     };
 
     const handleCallStatusChange = (status) => {
@@ -252,12 +260,66 @@ const CEOphoneBook = () => {
         updateCallStatus(pendingStatusChange);
     };
 
-    const HandleCreatePhoneBook = async (num,id) => {
+    const HandleCreatePhoneBook = async (num, id) => {
         setPhoneBookModal(true)
         setPhoneBookNumber(num)
         setPhoneID(id)
-
     }
+
+
+    // Logic to handle pagination
+    const indexOfLastEntry = currentPage * entriesPerPage;
+    const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
+    const currentEntries = filteredData.slice(indexOfFirstEntry, indexOfLastEntry);
+
+    const totalPages = Math.ceil(filteredData.length / entriesPerPage);
+
+    // Handle page change
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    // Pagination handlers
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
+    // Calculate pagination buttons to display
+    const getPaginationButtons = () => {
+        const buttons = [];
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, startPage + 4);
+
+        for (let i = startPage; i <= endPage; i++) {
+            buttons.push(
+                <button
+                    key={i}
+                    onClick={() => handlePageChange(i)}
+                    style={{
+                        margin: '0 5px',
+                        padding: '5px 10px',
+                        backgroundColor: currentPage === i ? '#007bff' : '#fff',
+                        color: currentPage === i ? '#fff' : '#007bff',
+                        border: '1px solid #007bff',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                    }}
+                >
+                    {i}
+                </button>
+            );
+        }
+
+        return buttons;
+    };
 
     return (
         <>
@@ -270,187 +332,179 @@ const CEOphoneBook = () => {
 
                     <Col xs={12} md={12} lg={10}>
 
-                    <Card className='leads_main_cards'>
+                        <Card className='leads_main_cards'>
 
-                        <div className='mt-4' style={{ display: 'flex', justifyContent: 'end', alignItems: 'end' }} >
-                            <Button className='button_two' onClick={() => navigate('/generatereport')} >Call History</Button>
-                        </div>
-                        {/* Filter by pipeline */}
-                        <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', gap: '10px' }} className='mt-4'>
-                            <div className="filter-container w-100">
-                                <label htmlFor="pipeline-filter">Filter by Pipeline</label>
-                                <Select
-                                    id="pipeline-filter"
-                                    value={selectedPipeline}
-                                    onChange={setSelectedPipeline}
-                                    options={[{ value: '', label: 'All Pipelines' }, ...pipelines]}
-                                    isClearable
-                                />
+                            <div className='mt-4' style={{ display: 'flex', justifyContent: 'end', alignItems: 'end' }} >
+                                {/* <Button className='button_two' onClick={() => navigate('/generatereport')} >Call History</Button> */}
                             </div>
-
-                            {/* Filter by user */}
-                            <div className="filter-container w-100">
-                                <label htmlFor="user-filter">Filter by User</label>
-                                <Select
-                                    id="user-filter"
-                                    value={selectedUser}
-                                    onChange={setSelectedUser}
-                                    options={[{ value: '', label: 'Select User' }, ...filteredUsers.map(user => ({ value: user._id, label: user.name }))]}
-                                    isClearable
-                                />
-                            </div>
-
-                            {/* Filter by call status */}
-                            <div className="filter-container w-100">
-                                <label htmlFor="user-filter">Filter by Call Status</label>
-                                <Form.Group controlId="selectCalStatus" className='w-100'>
+                            {/* Filter by pipeline */}
+                            <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', gap: '10px' }} className='mt-4'>
+                                <div className="filter-container w-100">
+                                    <label htmlFor="pipeline-filter">Filter by Pipeline</label>
                                     <Select
-                                        options={calStatusOptions}
-                                        value={selectedCalStatus}
-                                        onChange={setSelectedCalStatus}
-                                        placeholder="Select Call Status"
+                                        id="pipeline-filter"
+                                        value={selectedPipeline}
+                                        onChange={setSelectedPipeline}
+                                        options={[{ value: '', label: 'All Pipelines' }, ...pipelines]}
                                         isClearable
                                     />
-                                </Form.Group>
-                            </div>
-                            {/* Search by Number */}
-                            <Form.Group controlId="searchBarNumber" className='w-100'>
-                                <label htmlFor="search-query">Search by Number:</label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Search by Number"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </Form.Group>
-                            <div className="filter-container w-100">
-                                <label htmlFor="date-filter">Filter by  Date</label>
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    <DatePicker
-                                        selected={startDate}
-                                        onChange={(date) => setStartDate(date)}
-                                        selectsStart
-                                        startDate={startDate}
-                                        endDate={endDate}
-                                        placeholderText="Start Date"
-                                        dateFormat="yyyy/MM/dd"
-                                        className="form-control"
-                                    />
-                                    <DatePicker
-                                        selected={endDate}
-                                        onChange={(date) => setEndDate(date)}
-                                        selectsEnd
-                                        startDate={startDate}
-                                        endDate={endDate}
-                                        minDate={startDate}
-                                        placeholderText="End Date"
-                                        dateFormat="yyyy/MM/dd"
-                                        className="form-control"
+                                </div>
+
+                                {/* Filter by user */}
+                                <div className="filter-container w-100">
+                                    <label htmlFor="user-filter">Filter by User</label>
+                                    <Select
+                                        id="user-filter"
+                                        value={selectedUser}
+                                        onChange={setSelectedUser}
+                                        options={[{ value: '', label: 'Select User' }, ...filteredUsers.map(user => ({ value: user._id, label: user.name }))]}
+                                        isClearable
                                     />
                                 </div>
+
+                                {/* Filter by call status */}
+                                <div className="filter-container w-100">
+                                    <label htmlFor="user-filter">Filter by Call Status</label>
+                                    <Form.Group controlId="selectCalStatus" className='w-100'>
+                                        <Select
+                                            options={calStatusOptions}
+                                            value={selectedCalStatus}
+                                            onChange={setSelectedCalStatus}
+                                            placeholder="Select Call Status"
+                                            isClearable
+                                        />
+                                    </Form.Group>
+                                </div>
+                                {/* Search by Number */}
+                                <Form.Group controlId="searchBarNumber" className='w-100'>
+                                    <label htmlFor="search-query">Search by Number:</label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Search by Number"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                </Form.Group>
+                                <div className="filter-container w-100">
+                                    <label htmlFor="date-filter">Filter by  Date</label>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <DatePicker
+                                            selected={startDate}
+                                            onChange={(date) => setStartDate(date)}
+                                            selectsStart
+                                            startDate={startDate}
+                                            endDate={endDate}
+                                            placeholderText="Start Date"
+                                            dateFormat="yyyy/MM/dd"
+                                            className="form-control"
+                                        />
+                                        <DatePicker
+                                            selected={endDate}
+                                            onChange={(date) => setEndDate(date)}
+                                            selectsEnd
+                                            startDate={startDate}
+                                            endDate={endDate}
+                                            minDate={startDate}
+                                            placeholderText="End Date"
+                                            dateFormat="yyyy/MM/dd"
+                                            className="form-control"
+                                        />
+                                    </div>
+                                </div>
+
                             </div>
 
-                        </div>
-
-                        <Table hover bordered responsive className='mt-3 table_main_container' size='md'>
-                            <thead style={{ backgroundColor: '#f8f9fd' }}>
-                                <tr
-                                    className="teble_tr_class"
-                                    style={{
-                                        backgroundColor: '#e9ecef', // Light background color for the row
-                                        color: '#343a40', // Dark text color
-                                        borderBottom: '2px solid #dee2e6', // Bottom border for rows
-                                        transition: 'background-color 0.3s ease', // Smooth transition for hover effect
-                                    }}
-                                >
-                                    <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">User</th>
-                                    <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Pipeline</th>
-                                    <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Number</th>
-                                    <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Status</th>
-                                    <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Call Status</th>
-                                    <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Actions</th>
-                                    {/* <th className="equal-width">Add Comment</th>
-              <th className="equal-width">View Comments</th> */}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredData.length > 0 ? (
-                                    filteredData.map((entry, index) => (
-                                        <tr key={index}>
-                                            <td style={{ textAlign: 'center' }} className='table_td_class'>
-                                                {entry.user?.name || 'N/A'}
-                                            </td>
-                                            <td className='table_td_class' style={{ textAlign: 'center' }}>{entry.pipeline?.name || 'N/A'}</td>
-                                            <td className='table_td_class' style={{ textAlign: 'center' }}>{entry.number}</td>
-                                            <td className='table_td_class' style={{ textAlign: 'center' }}>{entry.status}</td>
-                                            <td
-                                                style={{
+                            <Table hover bordered responsive className='mt-3 table_main_container' size='md'>
+                                <thead style={{ backgroundColor: '#f8f9fd' }}>
+                                    <tr className="teble_tr_class" style={{
+                                        backgroundColor: '#e9ecef',
+                                        color: '#343a40',
+                                        borderBottom: '2px solid #dee2e6',
+                                        transition: 'background-color 0.3s ease',
+                                    }}>
+                                        <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">User</th>
+                                        <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Pipeline</th>
+                                        <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Number</th>
+                                        <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Status</th>
+                                        <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Call Status</th>
+                                        <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {currentEntries.length > 0 ? (
+                                        currentEntries.map((entry, index) => (
+                                            <tr key={index}>
+                                                <td style={{ textAlign: 'center' }} className='table_td_class'>
+                                                    {entry.user?.name || 'N/A'}
+                                                </td>
+                                                <td className='table_td_class' style={{ textAlign: 'center' }}>{entry.pipeline?.name || 'N/A'}</td>
+                                                <td className='table_td_class' style={{ textAlign: 'center' }}>{entry.number}</td>
+                                                <td className='table_td_class' style={{ textAlign: 'center' }}>{entry.status}</td>
+                                                <td style={{
                                                     textAlign: 'center',
                                                     backgroundColor: entry.calstatus === 'No Answer' ? 'green' : entry.calstatus === 'Not Interested' ? 'red' : 'transparent',
                                                     color: entry.calstatus === 'No Answer' || entry.calstatus === 'Not Interested' ? 'white' : 'inherit',
+                                                }} className='table_td_class'>
+                                                    {entry.calstatus}
+                                                </td>
+                                                <td style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px' }}>
+                                                    {dropdownEntry && dropdownEntry._id === entry._id ? (
+                                                        <Dropdown>
+                                                            <Dropdown.Toggle className="dropdown_menu" id="dropdown-basic">
+                                                                {entry.calstatus || 'Select Status'}
+                                                            </Dropdown.Toggle>
+                                                            <Dropdown.Menu>
+                                                                <Dropdown.Item onClick={() => handleCallStatusChange('Req to call')}>Req to call</Dropdown.Item>
+                                                                <Dropdown.Item onClick={() => handleCallStatusChange('Interested')}>Interested</Dropdown.Item>
+                                                                <Dropdown.Item onClick={() => handleCallStatusChange('Rejected')}>Rejected</Dropdown.Item>
+                                                            </Dropdown.Menu>
+                                                        </Dropdown>
+                                                    ) : (
+                                                        <div className='editAction'>
+                                                            <FiEdit2
+                                                                onClick={() => setDropdownEntry(entry)}
+                                                                style={{ fontSize: '12px', cursor: 'pointer', color: 'white' }}
+                                                            />
+                                                            <div className="tooltip">Edit Status</div>
+                                                        </div>
+                                                    )}
 
-                                                }}
-                                                className='table_td_class'
-                                            >
-                                                {entry.calstatus}
-                                            </td>
-                                            <td style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px' }}>
-                                                {dropdownEntry && dropdownEntry._id === entry._id ? (
-                                                    <Dropdown>
-                                                        <Dropdown.Toggle className="dropdown_menu" id="dropdown-basic">
-                                                            {entry.calstatus || 'Select Status'}
-                                                        </Dropdown.Toggle>
-                                                        <Dropdown.Menu>
-                                                            <Dropdown.Item onClick={() => handleCallStatusChange('Req to call')}>Req to call</Dropdown.Item>
-                                                            <Dropdown.Item onClick={() => handleCallStatusChange('No Answer')}>No Answer</Dropdown.Item>
-                                                            <Dropdown.Item onClick={() => handleCallStatusChange('Not Interested')}>Not Interested</Dropdown.Item>
-                                                            <Dropdown.Item onClick={() => handleCallStatusChange('Convert to Lead')}>Convert to Lead</Dropdown.Item>
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
-                                                ) : (
-
-                                                    <div className='editAction'>
-                                                        <FiEdit2
-                                                            onClick={() => setDropdownEntry(entry)}
-                                                            style={{ fontSize: '12px', cursor: 'pointer', color: 'white' }}
-                                                        />
-                                                        <div className="tooltip">Edit Status</div>
+                                                    <div className='addAction'>
+                                                        <MdAdd onClick={() => handleAddCommentClick(entry)} style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }} />
+                                                        <div className="tooltip">Add Comments</div>
                                                     </div>
-                                                )}
 
-                                                <div className='addAction'>
-                                                    <MdAdd onClick={() => handleAddCommentClick(entry)} style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }} />
-                                                    <div className="tooltip">Add Comments</div>
-                                                </div>
+                                                    <div className='viewAction'>
+                                                        <GrView
+                                                            style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }}
+                                                            onClick={() => handleViewCommentsClick(entry)}
+                                                        />
+                                                        <div className="tooltip">View Comments</div>
+                                                    </div>
 
-                                                <div className='viewAction'>
-                                                    <GrView
-                                                        style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }}
-                                                        onClick={() => handleViewCommentsClick(entry)}
-                                                    />
-                                                    <div className="tooltip">View Comments</div>
-                                                </div>
-
-                                                <div className='viewAction'>
-                                                    <IoOpenOutline onClick={() => HandleCreatePhoneBook(entry.number, entry._id)} style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }} />
-                                                    <div className="tooltip">Create Lead</div>
-                                                </div>
-                                            </td>
-
-                                            {/* <td style={{ textAlign: 'center' }}>
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                  </td> */}
+                                                    <div className='viewAction'>
+                                                        <IoOpenOutline onClick={() => HandleCreatePhoneBook(entry.number, entry._id)} style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }} />
+                                                        <div className="tooltip">Create Lead</div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="6" style={{ textAlign: 'center' }}>No data available</td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="6" style={{ textAlign: 'center' }}>No data available</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
-                    </Card>
+                                    )}
+                                </tbody>
+                            </Table>
+
+                            {/* Pagination Controls */}
+                            {/* Pagination Controls */}
+                            <div style={{ display: 'flex', justifyContent: 'center' }} >
+                                <Button className='all_single_leads_button' onClick={handlePrevPage} disabled={currentPage === 1}>Previous</Button>
+                                <span>{` Page ${currentPage} of ${totalPages} `}</span>
+                                <Button className='all_single_leads_button' onClick={handleNextPage} disabled={currentPage === totalPages}>Next</Button>
+                            </div>
+                        </Card>
 
                         {/* Add Comment Modal */}
                         <Modal show={showAddCommentModal} onHide={() => setShowAddCommentModal(false)} centered size="lg">

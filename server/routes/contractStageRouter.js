@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const ContractStage = require('../models/contractStageModel'); // Adjust the path as necessary
 const { isAuth } = require('../utils');
+const hasPermission = require('../hasPermission');
 
 // Create a new contract stage
-router.post('/create-contract-stage', isAuth, async (req, res) => {
+router.post('/create-contract-stage', isAuth, hasPermission(['app_management']), async (req, res) => {
     try { 
         const { name, order, } = req.body;
         const created_by = req.user._id
@@ -12,7 +13,7 @@ router.post('/create-contract-stage', isAuth, async (req, res) => {
             name,
             order,
             created_by
-        });
+        }); 
 
         await newStage.save();
         res.status(201).json({ message: 'Contract stage created successfully', newStage });
@@ -23,7 +24,7 @@ router.post('/create-contract-stage', isAuth, async (req, res) => {
 });
 
 // Get all active contract stages
-router.get('/get-all-contract-stages', isAuth, async (req, res) => {
+router.get('/get-all-contract-stages', isAuth, hasPermission(['app_management']), async (req, res) => {
     try {
         const stages = await ContractStage.find({ delStatus: false })
             .populate('created_by', 'name'); // Populate with creator's name
@@ -36,7 +37,7 @@ router.get('/get-all-contract-stages', isAuth, async (req, res) => {
 });
 
 // Update a contract stage by ID
-router.put('/update-contract-stages/:id', isAuth, async (req, res) => {
+router.put('/update-contract-stages/:id', isAuth, hasPermission(['app_management']), async (req, res) => {
     try {
         const { id } = req.params;
         const { name, order } = req.body;
@@ -59,7 +60,7 @@ router.put('/update-contract-stages/:id', isAuth, async (req, res) => {
 });
 
 // Soft delete a contract stage by ID
-router.delete('/delete/:id', isAuth, async (req, res) => {
+router.delete('/delete/:id', isAuth, hasPermission(['app_management']), async (req, res) => {
     try {
         const { id } = req.params;
 

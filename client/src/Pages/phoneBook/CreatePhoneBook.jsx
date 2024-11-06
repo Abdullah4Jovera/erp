@@ -553,8 +553,8 @@ const CreatePhoneBook = ({ setPhoneBookModal, phoneBookModal, fetchData, getHodP
         setProduct('');
         setPipelineId('');
         setSelectedProductStage('');
-        setLeadType('');
-        setSource('');
+        // setLeadType('');
+        // setSource('');
         setLeadDetails('');
         setThirdParty('');
         setSelectedUsers([]);
