@@ -6,8 +6,14 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    pipeline_id: 
-                 [{ type: Schema.Types.ObjectId, ref: 'Pipeline' }],
+    pipeline_id:
+        [{ type: Schema.Types.ObjectId, ref: 'Pipeline' }],
+
+    status: {
+        type: String,
+        enum: ['Active', 'UnActive'],
+        default: 'UnActive'
+    },
     delStatus: {
         type: Boolean,
         default: false

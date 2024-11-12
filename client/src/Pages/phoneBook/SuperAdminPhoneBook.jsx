@@ -173,11 +173,11 @@ const SuperAdminPhoneBook = () => {
             <Container fluid>
 
                 <Row>
-                    <Col xs={12} md={12} lg={2}>
+                    <Col xs={12} md={12} lg={1}>
                         <Sidebar />
                     </Col>
 
-                    <Col xs={12} md={12} lg={10}>
+                    <Col xs={12} md={12} lg={11}>
                         <div style={{ display: 'flex', gap: '15px', alignItems: 'end', justifyContent: 'end' }} className='mt-4' >
 
                             <Button className='button_one' onClick={handleShow}>

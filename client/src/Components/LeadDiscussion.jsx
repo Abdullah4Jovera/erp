@@ -50,7 +50,7 @@ const LeadDiscussion = ({ id, singleLead, fetchSingleLead }) => {
     // Scroll to the top of the chat on first render
     useEffect(() => {
         if (chatHistoryRef.current) {
-            chatHistoryRef.current.scrollTop = 0; 
+            chatHistoryRef.current.scrollTop = 0;
         }
     }, []);
 
@@ -62,20 +62,24 @@ const LeadDiscussion = ({ id, singleLead, fetchSingleLead }) => {
     // }, [discussions]);
 
     return (
-        <div>
+        <div style={{ height: '100%', maxHeight: '800px' }} >
             <WhatsAppChatBox />
-            <Card className='mt-4 lead_discussion_main_card_main' style={{ padding: '15px' }}>
+            <Card className='mt-2 lead_discussion_main_card_main mutual_background_class' style={{ padding: '15px' }}>
                 <Container>
                     <Row>
                         <Col xs={12}>
                             <div className='discussion_files'>
-                                <h5>Lead Discussion</h5>
+                                <h5 className='mutual_class_color'>Lead Discussion</h5>
                             </div>
-                            <hr />
-
                             <div
-                                className="chat-history mb-3"
-                                style={{ maxHeight: '300px', overflowY: 'auto' }}
+                                className="chat-history mb-3 p-3"
+                                style={{
+                                    maxHeight: '240px',
+                                    overflowY: 'auto',
+                                    backgroundColor: '#f5f5f5',
+                                    borderRadius: '8px',
+                                    border: '1px solid #ddd',
+                                }}
                                 ref={chatHistoryRef} // Attach ref to the chat history container
                             >
                                 {discussions.slice().reverse().map((leadDiscussion, index) => {
@@ -84,29 +88,50 @@ const LeadDiscussion = ({ id, singleLead, fetchSingleLead }) => {
                                         : default_image;
 
                                     return (
-                                        <div key={index}>
+                                        <div key={index} style={{ marginBottom: '16px' }}>
                                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                                 <OverlayTrigger
                                                     placement="top"
                                                     overlay={<Tooltip id={`tooltip-${index}`}>{leadDiscussion.created_by.name}</Tooltip>}
                                                 >
-                                                    <Image src={imageSrc} alt="image" className='image_control_discussion' />
+                                                    <Image
+                                                        src={imageSrc}
+                                                        alt="User profile"
+                                                        className="image_control_discussion"
+                                                        style={{
+                                                            width: '32px',
+                                                            height: '32px',
+                                                            borderRadius: '50%',
+                                                            objectFit: 'cover',
+                                                            border: '1px solid #ddd',
+                                                        }}
+                                                    />
                                                 </OverlayTrigger>
-                                                <p className='mb-0' style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                                <p className="mb-0" style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#333' }}>
                                                     {leadDiscussion.created_by.name}
                                                 </p>
                                             </div>
-                                            <p className='mb-0' style={{ fontSize: '14px' }}>
+                                            <p className="mb-0" style={{ fontSize: '0.75rem', color: '#666' }}>
                                                 {new Date(leadDiscussion.created_at).toLocaleDateString('en-US', {
                                                     year: 'numeric',
                                                     month: 'long',
                                                     day: 'numeric',
                                                     hour: '2-digit',
                                                     minute: '2-digit',
-                                                    hour12: true
+                                                    hour12: true,
                                                 })}
                                             </p>
-                                            <p style={{ fontSize: '14px' }} className='mb-4 mt-2'>
+                                            <p
+                                                className="mb-4 mt-2"
+                                                style={{
+                                                    fontSize: '0.9rem',
+                                                    color: '#333',
+                                                    backgroundColor: '#e9ecef',
+                                                    padding: '10px',
+                                                    borderRadius: '6px',
+                                                    maxWidth: '80%',
+                                                }}
+                                            >
                                                 {leadDiscussion.comment}
                                             </p>
                                         </div>

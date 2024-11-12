@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Route to store commission payments when collection_status is 100%
 router.post('/store-commissions', async (req, res) => {
-    const { dealId, commissionData } = req.body; // commissionData should be an array of { userId, commission }
+    const { dealId, commissionData } = req.body; 
 
     try {
         // Find the deal
@@ -29,8 +29,8 @@ router.post('/store-commissions', async (req, res) => {
                 dealId,
                 userId,
                 totalCommission: commission,
-                paidAmount: 0,
-                remainingCommission: commission, // Calculate remaining commission
+                paidCommission: 0,
+                remainingCommission: commission,
             });
 
             await commissionPayment.save();
@@ -41,18 +41,28 @@ router.post('/store-commissions', async (req, res) => {
             await user.save();
         }
 
+        // Mark the deal as having generated a report
+        deal.is_report_generated = true;
+        await deal.save();
+
         return res.status(200).json({ message: 'Commission payments stored successfully', commissionPayments });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Server error' });
     }
 });
-
+ 
+ 
 // New route to allow user to pay their commission
 router.put('/commissions/pay', async (req, res) => {
     const { userId, dealId, paymentAmount } = req.body;
 
     try {
+        // Validate paymentAmount is a valid number
+        if (isNaN(paymentAmount) || paymentAmount <= 0) {
+            return res.status(400).json({ message: 'Invalid payment amount' });
+        }
+
         // Find the commission payment for this user and deal
         const commissionPayment = await CommissionPayment.findOne({ userId, dealId });
 
@@ -60,14 +70,29 @@ router.put('/commissions/pay', async (req, res) => {
             return res.status(404).json({ message: 'No commission record found for this user and deal' });
         }
 
+        // Validate remainingCommission is a valid number
+        if (isNaN(commissionPayment.remainingCommission)) {
+            return res.status(400).json({ message: 'Invalid remaining commission' });
+        }
+
         // Check if the payment exceeds the remaining commission
         if (paymentAmount > commissionPayment.remainingCommission) {
             return res.status(400).json({ message: 'Payment amount exceeds remaining commission' });
         }
 
-        // Update the paidAmount and remainingCommission
-        commissionPayment.paidAmount += paymentAmount;
+        // Update the paidCommission and remainingCommission
+        commissionPayment.paidCommission += paymentAmount;
         commissionPayment.remainingCommission -= paymentAmount;
+
+        // Ensure paidCommission does not exceed totalCommission
+        if (commissionPayment.paidCommission > commissionPayment.totalCommission) {
+            return res.status(400).json({ message: 'Paid commission exceeds total commission' });
+        }
+
+        // Ensure that paidCommission and remainingCommission are valid numbers
+        if (isNaN(commissionPayment.paidCommission) || isNaN(commissionPayment.remainingCommission)) {
+            return res.status(400).json({ message: 'Invalid commission values' });
+        }
 
         // Save the updated commission payment
         await commissionPayment.save();
@@ -83,7 +108,7 @@ router.put('/commissions/pay', async (req, res) => {
 });
 
 // Route to get all commission payments with populated deal, client, and user details
-router.get('/commissions', async (req, res) => {
+router.get('/commissions', async (req, res) => { 
     try {
         const commissions = await CommissionPayment.find()
             .populate({

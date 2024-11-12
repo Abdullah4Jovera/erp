@@ -26,10 +26,8 @@ const RejectedLeads = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedBranch, setSelectedBranch] = useState('All');
     const [selectedProduct, setSelectedProduct] = useState('All');
-    const leadsPerPage = 9;
+    const leadsPerPage = 12;
     const pagesToShow = 5;
-
-    console.log(rejectedLeads, 'rejectedLeads')
 
     const productPipelineMap = {
         'Business Banking': ['Business Banking'],
@@ -61,9 +59,8 @@ const RejectedLeads = () => {
         (selectedProduct === 'All' || lead.productName === selectedProduct) &&
         lead.clientName.toLowerCase().includes(searchClientName.toLowerCase()) &&
         lead.pipelineName.toLowerCase().includes(searchPipelineName.toLowerCase()) &&
-        lead.phone.toLowerCase().includes(searchPhoneNumber.toLowerCase()) 
-        // &&
-        // lead.companyName.toLowerCase().includes(searchCompanyName.toLowerCase())
+        lead.phone.toLowerCase().includes(searchPhoneNumber.toLowerCase()) &&
+        (lead.companyName?.toLowerCase() || '').includes(searchCompanyName.toLowerCase())
     );
 
     // Pagination for the filtered leads
@@ -265,7 +262,7 @@ const RejectedLeads = () => {
 
                             {/* Pagination */}
                             <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                <Pagination>
+                                <Pagination className='custom-pagination' >
                                     <Pagination.First onClick={() => handlePageChange(1)} disabled={currentPage === 1} />
                                     <Pagination.Prev onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} />
                                     {pages.map(page => (

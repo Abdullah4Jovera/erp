@@ -2,6 +2,7 @@
   "name": "crm",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:4000",
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
     "@atlaskit/css-reset": "^6.11.0",
@@ -16,6 +17,7 @@
     "react": "^18.3.1",
     "react-beautiful-dnd": "^13.1.1",
     "react-bootstrap": "^2.10.4",
+    "react-card-flip": "^1.2.3",
     "react-chat-widget": "^3.1.4",
     "react-color": "^2.19.3",
     "react-datepicker": "^7.4.0",

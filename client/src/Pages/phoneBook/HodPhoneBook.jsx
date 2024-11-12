@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { AiOutlineEye } from "react-icons/ai";
-import { Table, Modal, Button, Form, Dropdown, Container, Row, Col, Card, ListGroup } from 'react-bootstrap';
+import { Table, Modal, Button, Form, Dropdown, Container, Row, Col, Card, ListGroup, Image } from 'react-bootstrap';
 import Select from 'react-select';
 import { MdAdd } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
@@ -53,7 +53,8 @@ const HodPhoneBook = () => {
     const [skippedNumbers, setSkippedNumbers] = useState([]);
     const [message, setMessage] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const entriesPerPage = 10;
+    const [showCommentsModal, setShowCommentsModal] = useState(false);
+    const entriesPerPage = 12;
     const totalPages = Math.ceil(filteredPhonebookData.length / entriesPerPage);
     const navigate = useNavigate();
 
@@ -177,45 +178,45 @@ const HodPhoneBook = () => {
     };
 
     // Add Comment API
-    const handleSaveComment = async () => {
-        if (selectedEntry && currentComment.trim()) {
-            try {
-                if (token) {
-                    await axios.post(
-                        `/api/phonebook/add-comment`,
-                        {
-                            phonebookId: selectedEntry._id,
-                            comment: currentComment
-                        },
-                        {
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            }
-                        }
-                    );
+    // const handleSaveComment = async () => {
+    //     if (selectedEntry && currentComment.trim()) {
+    //         try {
+    //             if (token) {
+    //                 await axios.post(
+    //                     `/api/phonebook/add-comment`,
+    //                     {
+    //                         phonebookId: selectedEntry._id,
+    //                         comment: currentComment
+    //                     },
+    //                     {
+    //                         headers: {
+    //                             'Authorization': `Bearer ${token}`,
+    //                             'Content-Type': 'application/json'
+    //                         }
+    //                     }
+    //                 );
 
-                    // Update local state
-                    const updatedData = hodData.map(entry =>
-                        entry._id === selectedEntry._id
-                            ? { ...entry, comments: [...(entry.comments || []), { remarks: currentComment, createdAt: new Date() }] }
-                            : entry
-                    );
+    //                 // Update local state
+    //                 const updatedData = hodData.map(entry =>
+    //                     entry._id === selectedEntry._id
+    //                         ? { ...entry, comments: [...(entry.comments || []), { remarks: currentComment, createdAt: new Date() }] }
+    //                         : entry
+    //                 );
 
-                    const sortedUpdatedData = updatedData.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-                    setHodData(sortedUpdatedData);
-                    setFilteredPhonebookData(sortedUpdatedData);
-                } else {
-                    navigate('/');
-                }
-            } catch (error) {
-                console.error('Error saving comment:', error);
-            }
-        }
-        setCurrentComment('');
-        setSelectedEntry(null);
-        setShowAddCommentModal(false);
-    };
+    //                 const sortedUpdatedData = updatedData.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    //                 setHodData(sortedUpdatedData);
+    //                 setFilteredPhonebookData(sortedUpdatedData);
+    //             } else {
+    //                 navigate('/');
+    //             }
+    //         } catch (error) {
+    //             console.error('Error saving comment:', error);
+    //         }
+    //     }
+    //     setCurrentComment('');
+    //     setSelectedEntry(null);
+    //     setShowAddCommentModal(false);
+    // };
 
     const handleAddCommentClick = (entry) => {
         setSelectedEntry(entry);
@@ -358,9 +359,56 @@ const HodPhoneBook = () => {
         }
     };
 
+    const handleCommentsClick = (entry) => {
+        setSelectedEntry(entry);
+        setCommentsToView(entry.comments || []); // Load existing comments
+        setCurrentComment(''); // Reset the new comment field
+        setShowCommentsModal(true); // Open the modal
+    };
+
+    // Save comment API call and update state
+    const handleSaveComment = async () => {
+        if (selectedEntry && currentComment.trim()) {
+            try {
+                if (token) {
+                    await axios.post(
+                        `/api/phonebook/add-comment`,
+                        {
+                            phonebookId: selectedEntry._id,
+                            comment: currentComment
+                        },
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        }
+                    );
+
+                    // Update local state with the new comment
+                    const updatedData = hodData.map(entry =>
+                        entry._id === selectedEntry._id
+                            ? { ...entry, comments: [...(entry.comments || []), { remarks: currentComment, createdAt: new Date() }] }
+                            : entry
+                    );
+
+                    const sortedUpdatedData = updatedData.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+                    getHodPhoneBookData();
+                    setHodData(sortedUpdatedData);
+                    setFilteredPhonebookData(sortedUpdatedData);
+                    setShowCommentsModal(false)
+                } else {
+                    navigate('/');
+                }
+            } catch (error) {
+                console.error('Error saving comment:', error);
+            }
+        }
+        setCurrentComment(''); // Clear the comment field
+    };
+
     return (
         <>
-            {/* <Navbar /> */}
             <Container fluid>
                 <Row>
                     <Col xs={12} md={12} lg={2}>
@@ -373,7 +421,7 @@ const HodPhoneBook = () => {
 
                                 <div style={{ display: 'flex', justifyContent: 'end', gap: '15px', alignItems: 'end', marginBottom: '20px' }}>
                                     <Button className='button_one' onClick={() => setShowImportModal(true)}>Import CSV</Button>
-                                    <Button className='button_two' onClick={() => navigate('/generatereport')} >Call History</Button>
+                                    {/* <Button className='button_two' onClick={() => navigate('/generatereport')} >Call History</Button> */}
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', alignItems: 'center' }}>
@@ -445,6 +493,7 @@ const HodPhoneBook = () => {
                                                             transition: 'background-color 0.3s ease',
                                                         }}
                                                     >
+                                                        <th className="equal-width" style={{ backgroundColor: '#f8f9fd' }}>Uploaded by</th>
                                                         <th className="equal-width" style={{ backgroundColor: '#f8f9fd' }}>User</th>
                                                         <th className="equal-width" style={{ backgroundColor: '#f8f9fd' }}>Pipeline</th>
                                                         <th className="equal-width" style={{ backgroundColor: '#f8f9fd' }}>Phone</th>
@@ -455,6 +504,7 @@ const HodPhoneBook = () => {
                                                 <tbody>
                                                     {currentEntries.map((entry, index) => (
                                                         <tr key={index}>
+                                                            <td className='table_td_class'>{entry.uploaded_by?.name ? entry.uploaded_by?.name : 'N/A'}</td>
                                                             <td className='table_td_class'>{entry.user.name}</td>
                                                             <td className='table_td_class'>{entry.pipeline.name}</td>
                                                             <td className='table_td_class'>{entry.number}</td>
@@ -480,20 +530,27 @@ const HodPhoneBook = () => {
                                                                         <div className="tooltip">Edit Status</div>
                                                                     </div>
                                                                 )}
-                                                                <div className='addAction'>
+                                                                {/* <div className='addAction'>
                                                                     <MdAdd
                                                                         onClick={() => handleAddCommentClick(entry)}
                                                                         style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }}
                                                                     />
                                                                     <div className="tooltip">Add Comments</div>
+                                                                </div> */}
+                                                                <div className='addAction'>
+                                                                    <MdAdd
+                                                                        style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }}
+                                                                        onClick={() => handleCommentsClick(entry)}
+                                                                    />
+                                                                    <div className="tooltip">View/Add Comments</div>
                                                                 </div>
-                                                                <div className='viewAction'>
+                                                                {/* <div className='viewAction'>
                                                                     <AiOutlineEye
                                                                         onClick={() => handleViewCommentsClick(entry)}
                                                                         style={{ fontSize: '15px', cursor: 'pointer', color: 'white' }}
                                                                     />
                                                                     <div className="tooltip">View Comments</div>
-                                                                </div>
+                                                                </div> */}
                                                                 <div className='viewAction'>
                                                                     <IoOpenOutline
                                                                         onClick={() => HandleCreatePhoneBook(entry.number, entry._id)}
@@ -575,15 +632,105 @@ const HodPhoneBook = () => {
                                 </Modal>
 
                                 {/* Add Comment Modal */}
-                                <Modal show={showAddCommentModal} onHide={() => setShowAddCommentModal(false)} centered size="lg">
+                                <Modal show={showCommentsModal} onHide={() => setShowCommentsModal(false)} centered size="md">
                                     <Modal.Header closeButton>
-                                        <Modal.Title>Add Comment</Modal.Title>
+                                        <Modal.Title>Comments</Modal.Title>
                                     </Modal.Header>
                                     <Modal.Body>
-                                        <Form.Group controlId="commentTextarea">
+                                        <div className="comments-section" style={{
+                                            height: '100%',
+                                            maxHeight: '300px',
+                                            overflowY: 'scroll',
+                                            padding: '20px',
+                                            backgroundColor: '#f5f5f5',
+                                            borderRadius: '15px',
+                                            boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
+                                            marginTop: '20px',
+                                            position: 'relative'
+                                        }}>
+                                            {commentsToView.length > 0 ? (
+                                                commentsToView.map((comment, index) => (
+                                                    <div key={index} className="comment-item" style={{
+                                                        display: 'flex',
+                                                        flexDirection: comment.user.name === 'CurrentUser' ? 'row-reverse' : 'row', // Align comments differently
+                                                        alignItems: 'flex-start',
+                                                        marginBottom: '20px',
+                                                        animation: 'fadeIn 0.5s ease-in-out'
+                                                    }}>
+                                                        {/* User Image */}
+                                                        <div className="user-image" style={{
+                                                            width: '45px',
+                                                            height: '45px',
+                                                            borderRadius: '50%',
+                                                            overflow: 'hidden',
+                                                            marginRight: '15px',
+                                                            marginLeft: comment.user.name === 'CurrentUser' ? '0' : '15px',
+                                                            marginRight: comment.user.name === 'CurrentUser' ? '15px' : '0',
+                                                            border: '2px solid #fff',  // Add a border around the image
+                                                            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)' // Slight shadow to create depth
+                                                        }}>
+                                                            <Image
+                                                                src={comment.user?.image ? `/images/${comment.user?.image}` : defaultimage}
+                                                                alt="User_image"
+                                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                            />
+                                                        </div>
+
+                                                        {/* Comment Text */}
+                                                        <div className="comment-text" style={{
+                                                            backgroundColor: comment.user.name === 'CurrentUser' ? '#4CAF50' : '#fff', // Different colors for current user
+                                                            color: comment.user.name === 'CurrentUser' ? '#fff' : '#333', // Dark text for others, light for current user
+                                                            borderRadius: '15px',
+                                                            padding: '12px 18px',
+                                                            maxWidth: '75%',
+                                                            wordWrap: 'break-word',
+                                                            boxShadow: comment.user.name === 'CurrentUser' ? '0 2px 10px rgba(0, 128, 0, 0.2)' : '0 2px 10px rgba(0, 0, 0, 0.1)',
+                                                            position: 'relative',
+                                                            marginBottom: '8px',
+                                                            fontSize: '14px',
+                                                            lineHeight: '1.5',
+                                                        }}>
+                                                            <p style={{ margin: '0 0 8px', color: 'inherit' }}>{comment.remarks}</p>
+
+                                                            {/* Comment Author & Time */}
+                                                            <div style={{
+                                                                fontSize: '12px',
+                                                                color: comment.user.name === 'CurrentUser' ? '#e0e0e0' : '#888',
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                flexDirection: 'column'
+                                                            }}>
+                                                                <div>
+                                                                    <strong>{comment.user.name}</strong>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className='mb-0' style={{ fontSize: '12px' }}>
+                                                                        {new Date(comment.createdAt).toLocaleDateString('en-US', {
+                                                                            year: 'numeric',
+                                                                            month: 'long',
+                                                                            day: 'numeric',
+                                                                            hour: '2-digit',
+                                                                            minute: '2-digit',
+                                                                            hour12: true
+                                                                        })}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p style={{ fontSize: '14px', color: '#888' }}>No comments yet. Be the first to add one!</p>
+                                            )}
+                                        </div>
+
+
+                                        {/* Text area for adding a new comment */}
+                                        <Form.Group controlId="commentTextarea" className="mt-3">
                                             <Form.Control
                                                 as="textarea"
-                                                rows={3}
+                                                rows={1}
                                                 value={currentComment}
                                                 onChange={(e) => setCurrentComment(e.target.value)}
                                                 placeholder="Enter your comment here"
@@ -591,10 +738,7 @@ const HodPhoneBook = () => {
                                         </Form.Group>
                                     </Modal.Body>
                                     <Modal.Footer>
-                                        {/* <Button variant="secondary" onClick={() => setShowAddCommentModal(false)}>
-                            Close
-                        </Button> */}
-                                        <Button className='button_one' onClick={handleSaveComment}>
+                                        <Button className='all_single_leads_button' onClick={handleSaveComment}>
                                             Save Comment
                                         </Button>
                                     </Modal.Footer>

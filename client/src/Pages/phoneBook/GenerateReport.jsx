@@ -125,11 +125,11 @@ const GenerateReport = () => {
             {/* <Navbar /> */}
             <Container fluid>
                 <Row>
-                    <Col xs={12} md={12} lg={2}>
+                    <Col xs={12} md={12} lg={1}>
                         <Sidebar />
                     </Col>
 
-                    <Col xs={12} md={12} lg={10}>
+                    <Col xs={12} md={12} lg={11}>
 
                         <div className="phonebook-container mt-4">
                             <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', alignItems: 'center' }}>

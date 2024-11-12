@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Modal, Button, Form, Container, Row, Col, Image,OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Card, Table, Modal, Button, Form, Container, Row, Col, Image, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import '../Pages/style.css';
 import { RiDeleteBinLine } from "react-icons/ri";
 import { IoMdAdd } from "react-icons/io";
@@ -9,9 +9,22 @@ import { useParams } from 'react-router-dom';
 import Select from 'react-select';
 import default_image from '../Assets/default_image.jpg';
 import { TiDeleteOutline } from "react-icons/ti";
+import { HiMiniBuildingOffice2 } from "react-icons/hi2";
+import { FaCodeBranch } from "react-icons/fa6";
+import { SiGoogleadsense } from "react-icons/si";
+import { TbSocial } from "react-icons/tb";
+import { TbWorldWww } from "react-icons/tb";
+import { MdOutlinePhone, MdOutlineEmail } from "react-icons/md";
+import { SiEmirates } from "react-icons/si";
+import FileUploader from './FileUploader';
+import ActivityLead from './ActivityLead';
+import rejected_image from '../Assets/rejected_image.png'
+import blovkimage from '../Assets/blovkimage.png'
+import ReactCardFlip from 'react-card-flip';
 
-const LeadUsers = ({ singleLead, fetchSingleLead }) => {
+const LeadUsers = ({ singleLead, fetchSingleLead, labels }) => {
     const { selected_users = [], pipeline_id } = singleLead;
+    const [isFlipped, setIsFlipped] = useState(false);
     const { id } = useParams();
     const [userModal, setUserModal] = useState(false);
     const [deleteModal, setDeleteModal] = useState(false);
@@ -25,6 +38,17 @@ const LeadUsers = ({ singleLead, fetchSingleLead }) => {
     const token = useSelector(state => state.loginSlice.user?.token);
     const [allUsers, setAllUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
+
+
+    useEffect(() => {
+        setIsFlipped(singleLead.is_reject);
+    }, [singleLead.is_reject]);
+
+    const handleCardClick = () => {
+        if (singleLead.is_reject) {
+            setIsFlipped(!isFlipped);
+        }
+    };;
 
     // Fetch all users
     useEffect(() => {
@@ -118,142 +142,416 @@ const LeadUsers = ({ singleLead, fetchSingleLead }) => {
         <>
             <Container>
                 <Row>
-                    <Col xs={12} md={7}>
-                        <Card className='mt-4 lead_discussion_main_card_description' style={{ padding: '20px' }}>
-                            <h4 className='mb-0' style={{ color: '#B9406B', textAlign: 'center' }}>
-                                {singleLead?.company_Name || 'No Company Name'}
-                            </h4>
-                            <p className='text-muted text-sm mb-0 text-center'>Company Name</p>
-                            <div>
-                                <h5>Lead Details</h5>
-                            </div>
-                            {singleLead?.description
-                                ? singleLead.description.split('\n').map((line, index) => (
-                                    <p
-                                        className='mb-0'
-                                        key={index}
-                                        style={{ fontWeight: index % 2 === 0 ? 'bold' : 'normal' }}
-                                    >
-                                        {line}
-                                    </p>
-                                ))
-                                : <p>No description available</p>
-                            }
-                        </Card>
-                    </Col>
 
-                    <Col xs={12} md={5}>
-                        <Card className='mt-4 lead_discussion_main_card_user' style={{ padding: '20px' }}>
-                            <div className='discussion_files'>
-                                <h5>Users</h5>
-                                {
-                                    singleLead.is_reject && canAddUserLead
-                                        ? null
-                                        : (
-                                            canAddUserLead && (
-                                                <div className='lead_users_delete_btn mb-3'>
-                                                    <IoMdAdd style={{ fontSize: '20px', color: 'white', cursor: 'pointer' }} onClick={() => setUserModal(true)} />
-                                                </div>
-                                            )
-                                        )
-                                }
+                    <Col xs={12} md={4}>
+                        <Card body className='lead_discussion_main_card_user mutual_background_class' >
+                            {/* <h5 style={{ color: '#B9406B', textAlign: 'center' }} > Client Details </h5> */}
+                            <h5 style={{ textAlign: 'center' }} className='mutual_class_color' > {singleLead.client?.name && singleLead.client?.name} </h5>
+                            <div className='first_card' >
+                                <div className='single_lead_upper_container' >
+                                    <div className='single_lead_icons' >
+                                        <MdOutlinePhone style={{ fontSize: '18px' }} />
+                                    </div>
+                                    <div>
+                                        <p className='text-muted text-sm mb-0 mutual_heading_class' >Phone</p>
+                                        <p className='mb-0 mutual_class_color' style={{}}>{singleLead.client?.phone && singleLead.client?.phone}</p>
+                                        {singleLead.is_blocklist_number && (
+                                            <div>
+                                                <Image
+                                                    src={blovkimage}
+                                                    className="rejected_image"
+                                                    alt="Blocked Image"
+                                                    style={{ width: '80px', height: '80px', borderRadius: '50%' }}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className='single_lead_upper_container' >
+                                    <div className='single_lead_icons_one' >
+                                        <MdOutlineEmail style={{ fontSize: '18px' }} />
+                                    </div>
+                                    <div>
+                                        <p className='text-muted text-sm mb-0 mutual_heading_class' >Email</p>
+                                        <div style={{ width: '100%', maxWidth: '180px' }} >
+                                            {/* <h5 className='mb-0' style={{ color: '#ffa21d', fontSize: '14px' }} > {singleLead.client?.email && singleLead.client?.email} </h5> */}
+                                            <p className='mb-0 mutual_class_color' style={{}}>{singleLead.client?.email && singleLead.client?.email}</p>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div className='single_lead_upper_container' >
+                                    <div className='single_lead_icons_two' >
+                                        <SiEmirates style={{ fontSize: '18px' }} />
+                                    </div>
+                                    <div>
+                                        <p className='text-muted text-sm mb-0 mutual_heading_class' >Emirates ID</p>
+                                        {/* <h5 className='mb-0' style={{ color: '#3ec9d6', fontSize: '14px' }}> {singleLead.client?.e_id && singleLead.client?.e_id} </h5> */}
+                                        <p className='mb-0 mutual_class_color' style={{}}>{singleLead.client?.e_id && singleLead.client?.e_id}</p>
+                                    </div>
+                                </div>
                             </div>
-                            <Table bordered responsive striped hover className="lead_user_class">
-                                <thead>
-                                    <tr>
-                                        <th style={{ width: '70%' }}>Name</th>
-                                        {
-                                            singleLead.is_reject && canRemoveUserLead
-                                                ? null
-                                                : (
-                                                    canRemoveUserLead && (
-                                                        <th className="text-center" style={{ width: '30%' }}>Action</th>
+                        </Card>
+
+                        {singleLead.is_reject ? (
+                            <ReactCardFlip isFlipped={isFlipped} flipDirection="horizontal">
+                                {/* Front Card - Users List */}
+                                <Card
+                                    className='mt-2 lead_discussion_main_card_user'
+                                    style={{ padding: '20px', height: '100%', maxHeight: '300px', overflowY: 'scroll' }}
+                                    onClick={handleCardClick}
+                                >
+                                    <div className='discussion_files'>
+                                        <h5 className='mutual_class_color' >Users</h5>
+                                        {!singleLead.is_reject && canAddUserLead ? (
+                                            <div className='lead_users_delete_btn mb-3'>
+                                                <IoMdAdd style={{ fontSize: '20px', color: 'white', cursor: 'pointer' }} onClick={() => setUserModal(true)} />
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                    <Table bordered responsive striped hover className="lead_user_class">
+                                        {/* <thead>
+                                            <tr>
+                                                <th style={{ width: '70%' }}>Name</th>
+                                                {singleLead.is_reject || !canRemoveUserLead ? null : (
+                                                    <th className="text-center" style={{ width: '30%' }}>Action</th>
+                                                )}
+                                            </tr>
+                                        </thead> */}
+                                        <tbody>
+                                            {selected_users.length > 0 ? (
+                                                selected_users
+                                                    .filter(
+                                                        user =>
+                                                            !["ceo", "md", "super admin", "company", "hod"].includes(user?.role?.trim().toLowerCase())
                                                     )
-                                                )
-                                        }
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {selected_users.length > 0 ? (
-                                        selected_users
-                                            .filter(
-                                                user =>
-                                                    user?.role?.trim().toLowerCase() !== "ceo" &&
-                                                    user?.role?.trim().toLowerCase() !== "md" &&
-                                                    user?.role?.trim().toLowerCase() !== "super admin" &&
-                                                    user?.role?.trim().toLowerCase() !== "company" &&
-                                                    user?.role?.trim().toLowerCase() !== "hod"
-                                            )
-                                            .map((user) => {
-                                                const imageSrc = user?.image
-                                                    ? `/images/${user?.image}`
-                                                    : default_image;
+                                                    .map((user) => {
+                                                        const imageSrc = user?.image
+                                                            ? `/images/${user?.image}`
+                                                            : default_image;
 
-                                                // Tooltip to display the user's name
-                                                const renderTooltip = (props) => (
-                                                    <Tooltip id="user-tooltip" {...props}>
-                                                        {user.name}
-                                                    </Tooltip>
-                                                );
+                                                        const renderTooltip = (props) => (
+                                                            <Tooltip id="user-tooltip" {...props}>
+                                                                {user.name}
+                                                            </Tooltip>
+                                                        );
 
-                                                return (
-                                                    <tr key={user._id} style={{ height: '50px' }}>
-                                                        <td style={{ verticalAlign: 'middle' }}>
-                                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                                <OverlayTrigger
-                                                                    placement="top"
-                                                                    delay={{ show: 250, hide: 400 }}
-                                                                    overlay={renderTooltip}
-                                                                >
-                                                                    <Image
-                                                                        src={imageSrc}
-                                                                        alt="User"
-                                                                        className="image_control_discussion"
-                                                                        style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-                                                                    />
-                                                                </OverlayTrigger>
-                                                                <span style={{ fontWeight: '600' }}>{user.name}</span>
-                                                            </div>
-                                                        </td>
-                                                        {
-                                                            singleLead.is_reject && canRemoveUserLead
-                                                                ? null
-                                                                : (
-                                                                    canRemoveUserLead && (
-                                                                        <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                                                                            <div className="lead_users_delete_btn">
-                                                                                <RiDeleteBinLine
-                                                                                    style={{ color: 'white', fontSize: '18px', cursor: 'pointer' }}
-                                                                                    onClick={() => {
-                                                                                        setUserIdToDelete(user._id);
-                                                                                        setDeleteModal(true);
-                                                                                    }}
-                                                                                />
-                                                                            </div>
-                                                                        </td>
-                                                                    )
-                                                                )
-                                                        }
-                                                    </tr>
-                                                );
-                                            })
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="2" className="text-center">
-                                                No users available
-                                            </td>
-                                        </tr>
+                                                        return (
+                                                            <tr key={user._id} style={{ height: '40px' }}>
+                                                                <td style={{ verticalAlign: 'middle' }}>
+                                                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                                        <OverlayTrigger
+                                                                            placement="top"
+                                                                            delay={{ show: 250, hide: 400 }}
+                                                                            overlay={renderTooltip}
+                                                                        >
+                                                                            <Image
+                                                                                src={imageSrc}
+                                                                                alt="User"
+                                                                                className="image_control_discussion"
+                                                                                style={{ objectFit: 'cover', cursor: 'pointer' }}
+                                                                            />
+                                                                        </OverlayTrigger>
+                                                                        <span style={{ fontWeight: '600', fontSize: '12px' }}>{user.name}</span>
+                                                                    </div>
+                                                                </td>
+                                                                {!singleLead.is_reject && canRemoveUserLead && (
+                                                                    <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                                                        <div className="lead_users_delete_btn">
+                                                                            <RiDeleteBinLine
+                                                                                style={{ color: 'white', fontSize: '14px', cursor: 'pointer' }}
+                                                                                onClick={() => {
+                                                                                    setUserIdToDelete(user._id);
+                                                                                    setDeleteModal(true);
+                                                                                }}
+                                                                            />
+                                                                        </div>
+                                                                    </td>
+                                                                )}
+                                                            </tr>
+                                                        );
+                                                    })
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="2" className="text-center">
+                                                        No users available
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </Table>
+                                </Card>
+
+                                {/* Back Card - Reason for Rejection */}
+                                <Card
+                                    body
+                                    className='mb-2 mt-2 rejected_lead_reason'
+                                    style={{ position: 'relative', backgroundColor: '#efefef' }}
+                                    onClick={handleCardClick}
+                                >
+                                    <div>
+                                        <h4 style={{ color: '#B9406B', textAlign: 'center' }} className='mb-0'>Reason of Rejection Lead</h4>
+                                        <p className='mt-2' >{singleLead && singleLead.reject_reason}</p>
+                                    </div>
+                                    <Image
+                                        src={rejected_image}
+                                        className='rejected_image'
+                                        alt='Rejected Image'
+                                        style={{ width: '90px', height: '90px', borderRadius: '50%' }}
+                                    />
+                                </Card>
+                            </ReactCardFlip>
+                        ) : (
+                            /* Display only the front card if singleLead.is_reject is false */
+                            <Card
+                                className='mt-2 lead_discussion_main_card_user mutual_background_class'
+                                style={{ padding: '20px', height: '100%', maxHeight: '250px' }}
+                                onClick={() => setIsFlipped(!isFlipped)}
+
+                            >
+                                <div className='discussion_files'>
+                                    <h5 className='mutual_class_color'>Users</h5>
+                                    {singleLead.is_reject || !canAddUserLead ? null : (
+                                        <div className='lead_users_delete_btn mb-3'>
+                                            <IoMdAdd style={{ fontSize: '20px', color: 'white', cursor: 'pointer' }} onClick={() => setUserModal(true)} />
+                                        </div>
                                     )}
-                                </tbody>
-                            </Table>
-                        </Card>
+                                </div>
+                                <Table bordered responsive striped hover className="lead_user_class">
+                                    {/* <thead>
+                                        <tr>
+                                            <th style={{ width: '70%' }}>Name</th>
+                                            {singleLead.is_reject || !canRemoveUserLead ? null : (
+                                                <th className="text-center" style={{ width: '30%' }}>Action</th>
+                                            )}
+                                        </tr>
+                                    </thead> */}
+                                    <tbody>
+                                        {selected_users.length > 0 ? (
+                                            selected_users
+                                                .filter(
+                                                    user =>
+                                                        !["ceo", "md", "super admin", "company", "hod"].includes(user?.role?.trim().toLowerCase())
+                                                )
+                                                .map((user) => {
+                                                    const imageSrc = user?.image
+                                                        ? `/images/${user?.image}`
+                                                        : default_image;
+
+                                                    const renderTooltip = (props) => (
+                                                        <Tooltip id="user-tooltip" {...props}>
+                                                            {user.name}
+                                                        </Tooltip>
+                                                    );
+
+                                                    return (
+                                                        <tr key={user._id} style={{ height: '40px' }}>
+                                                            <td style={{ verticalAlign: 'middle' }}>
+                                                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                                    <OverlayTrigger
+                                                                        placement="top"
+                                                                        delay={{ show: 250, hide: 400 }}
+                                                                        overlay={renderTooltip}
+                                                                    >
+                                                                        <Image
+                                                                            src={imageSrc}
+                                                                            alt="User"
+                                                                            className="image_control_discussion"
+                                                                            style={{ objectFit: 'cover', cursor: 'pointer' }}
+                                                                        />
+                                                                    </OverlayTrigger>
+                                                                    <span style={{ fontWeight: '600', fontSize: '12px' }}>{user.name}</span>
+                                                                </div>
+                                                            </td>
+                                                            {!singleLead.is_reject && canRemoveUserLead && (
+                                                                <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                                                    <div className="lead_users_delete_btn">
+                                                                        <RiDeleteBinLine
+                                                                            style={{ color: 'white', fontSize: '14px', cursor: 'pointer' }}
+                                                                            onClick={() => {
+                                                                                setUserIdToDelete(user._id);
+                                                                                setDeleteModal(true);
+                                                                            }}
+                                                                        />
+                                                                    </div>
+                                                                </td>
+                                                            )}
+                                                        </tr>
+                                                    );
+                                                })
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="2" className="text-center">
+                                                    No users available
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </Table>
+                            </Card>
+                        )}
+
+                        <FileUploader singleLead={singleLead} id={id} fetchSingleLead={fetchSingleLead} />
+
                     </Col>
+
+                    <Col xs={12} md={8}>
+                        <Card className='lead_discussion_main_card_description mutual_background_class' style={{ padding: '15px 20px 20px 20px', backgroundColor: 'white' }}>
+                            {
+                                labels?.length > 0 && (
+                                    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+                                        {labels.map((label, index) => {
+                                            let backgroundColor = '';
+
+                                            // Set the background color based on the label color
+                                            switch (label.color) {
+                                                case 'success':
+                                                    backgroundColor = '#6fd943';
+                                                    break;
+                                                case 'danger':
+                                                    backgroundColor = '#ff3a6e';
+                                                    break;
+                                                case 'primary':
+                                                    backgroundColor = '#5c91dc';
+                                                    break;
+                                                case 'warning':
+                                                    backgroundColor = '#ffa21d';
+                                                    break;
+                                                case 'info':
+                                                    backgroundColor = '#6ac4f4';
+                                                    break;
+                                                case 'secondary':
+                                                    backgroundColor = '#6c757d';
+                                                    break;
+                                                default:
+                                                    backgroundColor = '#ccc'; // Default color if no match
+                                            }
+
+                                            return (
+                                                <div key={index} style={{ marginRight: '4px', marginTop: '-16px', marginBottom: '20px' }}>
+                                                    <div
+                                                        className='labels_class'
+                                                        style={{
+                                                            backgroundColor: backgroundColor,
+                                                            borderRadius: '4px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            padding: '4px 8px',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        <p style={{ color: '#fff', margin: 0 }}>{label.name}</p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+
+                                    </div>
+                                )
+                            }
+
+                            {
+                                singleLead?.company_Name ? (
+                                    <>
+                                        <h4 className='mb-0 mutual_class_color' style={{ textAlign: 'center' }}>
+                                            {singleLead?.company_Name || 'No Company Name'}
+                                        </h4>
+                                        <p className='text-muted text-sm mb-0 text-center mutual_heading_class'>Company Name</p>
+
+                                    </>
+                                )
+                                    :
+                                    <p className='text-sm mb-0 text-center mutual_class_color mutual_heading_class'>No Company Name</p>
+                            }
+                            <div>
+                                <h5 className="mutual_class_color">Lead Details</h5>
+                            </div>
+                            <div style={{ maxHeight: '200px', overflowY: 'auto', padding: '0.5rem', borderRadius: '5px' }}>
+                                {singleLead?.description ? (
+                                    singleLead.description.split('\n').map((line, index) => (
+                                        <p
+                                            className={`mb-1 ${index % 2 === 0 ? 'mutual_class_color' : 'mutual_heading_class'}`}
+                                            key={index}
+                                        >
+                                            {line}
+                                        </p>
+                                    ))
+                                ) : (
+                                    <p className="text-muted text-sm mb-0">No description available</p>
+                                )}
+                            </div>
+                        </Card>
+
+                        <Card body className='mt-2 lead_discussion_main_card_user mutual_background_class' >
+                            <h5 style={{ textAlign: 'center' }} className='mutual_class_color'> {singleLead.products?.name && singleLead.products?.name} </h5>
+                            <div className='first_card_product' >
+
+                                <div className='single_lead_upper_container' >
+                                    <div className='single_lead_icons' >
+                                        <HiMiniBuildingOffice2 style={{ fontSize: '18px' }} />
+                                    </div>
+                                    <div>
+                                        <p className='text-muted text-sm mb-0 mutual_heading_class' style={{ fontSize: '14px', fontWeight: '600' }} >Branch</p>
+                                        <p className='mb-0 mutual_class_color' style={{ fontSize: '14px', fontWeight: '500' }}>{singleLead.branch?.name && singleLead.branch?.name}</p>
+                                    </div>
+                                </div>
+
+                                <div className='single_lead_upper_container' >
+                                    <div className='single_lead_icons' >
+                                        <FaCodeBranch style={{ fontSize: '18px' }} />
+                                    </div>
+                                    <div>
+                                        <p className='text-muted text-sm mb-0 mutual_heading_class' style={{ fontSize: '14px', fontWeight: '600' }}>Pipeline</p>
+                                        <p className='mb-0 mutual_class_color' style={{ fontSize: '14px', fontWeight: '500' }}>{singleLead.pipeline_id?.name && singleLead.pipeline_id?.name}</p>
+                                    </div>
+                                </div>
+
+                                <div className='single_lead_upper_container' >
+                                    <div className='single_lead_icons_two' >
+                                        <SiGoogleadsense style={{ fontSize: '18px' }} />
+                                    </div>
+                                    <div>
+                                        <p className='text-muted text-sm mb-0 mutual_heading_class' style={{ fontSize: '14px', fontWeight: '600' }}>Lead Stage</p>
+                                        <p className='mb-0 mutual_class_color' style={{ fontSize: '14px', fontWeight: '500' }}>{singleLead.product_stage?.name && singleLead.product_stage?.name}</p>
+                                    </div>
+                                </div>
+
+                                <div className='single_lead_upper_container' >
+                                    <div className='single_lead_icons_two' >
+                                        <TbSocial style={{ fontSize: '18px' }} />
+                                    </div>
+                                    <div>
+                                        <p className='text-muted text-sm mb-0 mutual_heading_class' style={{ fontSize: '14px', fontWeight: '600' }}>Lead From</p>
+                                        <p className='mb-0 mutual_class_color' style={{ fontSize: '14px', fontWeight: '500' }}>{singleLead.lead_type?.name && singleLead.lead_type?.name}</p>
+                                    </div>
+                                </div>
+
+                                <div className='single_lead_upper_container' >
+                                    <div className='single_lead_icons_one' >
+                                        <TbWorldWww style={{ fontSize: '18px' }} />
+                                    </div>
+                                    <div>
+                                        <p className='text-muted text-sm mb-0 mutual_heading_class' style={{ fontSize: '14px', fontWeight: '600' }}>Source</p>
+                                        <p className='mb-0 mutual_class_color' style={{ fontSize: '14px', fontWeight: '500' }}>{singleLead.source?.name && singleLead.source?.name}</p>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </Card>
+
+                        {/* <FileUploader singleLead={singleLead} id={id} fetchSingleLead={fetchSingleLead} /> */}
+                        <ActivityLead singleLead={singleLead} />
+                    </Col>
+
                 </Row>
             </Container>
 
             {/* Add user Modal */}
             <Modal
-                size="sm"
+                size="md"
                 aria-labelledby="contained-modal-title-vcenter"
                 centered
                 show={userModal}

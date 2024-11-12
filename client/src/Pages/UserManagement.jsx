@@ -140,11 +140,11 @@ const UpdateRolePermissions = () => {
         <div>
             <Container fluid >
                 <Row>
-                    <Col xs={12} md={12} lg={2} >
+                    <Col xs={12} md={12} lg={1} >
                         <Sidebar />
                     </Col>
 
-                    <Col xs={12} md={12} lg={10}>
+                    <Col xs={12} md={12} lg={11}>
 
                         <h2 style={{ color: 'white' }}>Update Role Permissions</h2>
                         <Button onClick={() => setShowCreateModal(true)}>Create New Role</Button>

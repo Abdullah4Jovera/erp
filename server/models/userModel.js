@@ -19,12 +19,16 @@ const userSchema = new mongoose.Schema(
       required: false, 
     },
     // branch: {
-    //  type: String
+    //  type: String 
     // },
     phone: {
       type: String,
       
     },
+    commission: {
+      type: Number,
+      default: 0
+  },  
     products: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product',

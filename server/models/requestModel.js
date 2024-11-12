@@ -29,7 +29,7 @@ const leadRequestSchema = new mongoose.Schema({
     },
     actionChangedBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', // Reference to the user who changed the action
+        ref: 'User', 
     },
     pipeline_id: { 
         type: mongoose.Schema.Types.ObjectId,  
@@ -39,7 +39,7 @@ const leadRequestSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'ProductStage', 
     },
-    products: { 
+    products: {  
         type: mongoose.Schema.Types.ObjectId,  
         ref: 'Product' 
     },
@@ -47,6 +47,7 @@ const leadRequestSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Branch', 
     },
+    
     read: {
         type: Boolean,
         default: false,
@@ -54,7 +55,24 @@ const leadRequestSchema = new mongoose.Schema({
 
     delStatus: { 
         type: Boolean,
-        default: false,
+        default: false, 
+    },
+
+    currentPipeline: { 
+        type: mongoose.Schema.Types.ObjectId,  
+        ref: 'Pipeline', 
+    },
+    currentProductStage: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'ProductStage', 
+    },
+    currentProduct: {  
+        type: mongoose.Schema.Types.ObjectId,  
+        ref: 'Product' 
+    },
+    currentBranch: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Branch', 
     },
 });
 

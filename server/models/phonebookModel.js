@@ -7,15 +7,20 @@ const phonebookSchema = new mongoose.Schema(
             ref: 'User',
             required: true
         },
-        pipeline: { 
+        pipeline: {  
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Pipeline',
             required: true
         },
-        // selected_users: [{
-        //     type: mongoose.Schema.Types.ObjectId,
-        //     ref: 'User',
-        // }], 
+        lead_id: { 
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Lead',
+            required: false
+        },
+        uploaded_by: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+        }, 
         number: {
             type: String,
             required: true

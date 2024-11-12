@@ -77,7 +77,7 @@ router.put('/mark-read/:id', isAuth, async (req, res) => {
 
 // Create a new Lead Request
 router.post('/create-request', isAuth, async (req, res) => {
-    const { lead_id, message, branch, products, product_stage, pipeline_id, type } = req.body;
+    const { lead_id, message, branch, products, product_stage, pipeline_id, type, currentBranch, currentProduct, currentProductStage,currentPipeline } = req.body;
     const sender = req.user._id;
 
     if (!lead_id || !sender) {
@@ -131,7 +131,11 @@ router.post('/create-request', isAuth, async (req, res) => {
             pipeline_id,
             type,
             read: false,
-            action: 'Pending', // Default to 'Pending'
+            action: 'Pending',
+            currentBranch, 
+            currentProduct, 
+            currentProductStage,
+            currentPipeline
         });
 
         const savedRequest = await leadRequest.save();
@@ -155,7 +159,7 @@ router.get('/my-requests', isAuth, async (req, res) => {
                 { sender: userId },
                 { receivers: userId }
             ],
-            delStatus: false, // Exclude soft-deleted requests
+            delStatus: false, 
         })
             .populate('sender receivers', 'name email image')
             .populate({
@@ -173,11 +177,15 @@ router.get('/my-requests', isAuth, async (req, res) => {
             .populate('product_stage', 'name')
             .populate('products', 'name')
             .populate('branch', 'name')
+            .populate('currentPipeline', 'name')
+            .populate('currentProductStage', 'name')
+            .populate('currentProduct', 'name')
+            .populate('currentBranch', 'name')
             .populate('actionChangedBy', 'name image');
 
-        if (!userRequests || userRequests.length === 0) {
-            return res.status(404).json({ message: 'No lead requests found for this user.' });
-        }
+        // if (!userRequests || userRequests.length === 0) {
+        //     return res.status(404).json({ message: 'No lead requests found for this user.' });
+        // }
 
         res.status(200).json({
             message: 'Lead requests retrieved successfully.',
@@ -291,7 +299,7 @@ router.put('/change-action/:id', isAuth, async (req, res) => {
             const superadminUsers = await User.find({ role: 'superadmin' }).select('_id name');
             const mdUsers = await User.find({ role: 'MD' }).select('_id name');
             const hodUsers = await User.find({ role: 'HOD' }).select('_id name'); // HOD with no branch filter
-            const managerUsers = await User.find({
+            const managerUsers = await User.find({ 
                 role: 'Manager',
                 branch: branchId, // Filter managers by the new branch
             }).select('_id name');
@@ -388,13 +396,13 @@ const transferLead = async (user, { branch, products, product_stage, pipeline_id
         }
 
         // Fetch old values for change tracking
-        const oldBranch = await Branch.findById(lead.branch).select('name'); // Make sure to use Branch here
+        const oldBranch = await Branch.findById(lead.branch).select('name');
         const oldPipeline = await Pipeline.findById(lead.pipeline_id).select('name');
         const oldProductStage = await ProductStage.findById(lead.product_stage).select('name');
         const oldProducts = lead.products;
 
         // Fetch new values for change tracking
-        const newBranch = await Branch.findById(branchId).select('name'); // And here
+        const newBranch = await Branch.findById(branchId).select('name');
         const newPipeline = await Pipeline.findById(pipelineId).select('name');
         const newProductStage = await ProductStage.findById(productStageId).select('name');
 
@@ -429,10 +437,9 @@ const transferLead = async (user, { branch, products, product_stage, pipeline_id
         const hodUsers = await User.find({ role: 'HOD' }).select('_id name');
         const managerUsers = await User.find({ role: 'Manager', branch: branchId }).select('_id name');
 
-        const previousPipelineHodUsers = await User.find({
+        const previousPipelineHodUser = await User.findOne({
             role: 'HOD',
             pipeline: lead.pipeline_id,
-            branch: lead.branch
         }).select('_id');
 
         // Get the original creator of the lead
@@ -442,7 +449,6 @@ const transferLead = async (user, { branch, products, product_stage, pipeline_id
         const newSelectedUserIds = [
             user._id.toString(),
             createdByUserId,
-            ...previousPipelineHodUsers.map(user => user._id.toString()),
             ...ceoUsers.map(user => user._id.toString()),
             ...superadminUsers.map(user => user._id.toString()),
             ...mdUsers.map(user => user._id.toString()),
@@ -450,11 +456,16 @@ const transferLead = async (user, { branch, products, product_stage, pipeline_id
             ...managerUsers.map(user => user._id.toString())
         ];
 
-        // Ensure there are no duplicate user IDs
-        lead.selected_users = getUniqueUserIds(newSelectedUserIds);
+        // Assign the first (and only) previous pipeline HOD as ref_user if available
+        if (previousPipelineHodUser) {
+            lead.ref_user = previousPipelineHodUser._id;  // Assign ref_user directly from the single user
+        }
+
+        // Remove previous pipeline HOD user from selected_users if it exists
+        lead.selected_users = getUniqueUserIds(newSelectedUserIds.filter(id => id !== String(previousPipelineHodUser?._id)));
 
         // Save the updated lead
-        await lead.save(); // Change leadModel.save() to lead.save()
+        await lead.save();
 
         // Log the lead transfer in the activity log
         const activityLog = new ActivityLog({

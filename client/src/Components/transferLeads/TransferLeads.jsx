@@ -248,10 +248,10 @@ const TransferLeads = ({ fetchLeadsData, leadId, transferModal, setTransferModal
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button className='all_close_btn' onClick={() => setTransferModal(false)}>
+                    <Button className='all_close_btn_container' onClick={() => setTransferModal(false)}>
                         Close
                     </Button>
-                    <Button className='all_btn' onClick={transferLeads}>
+                    <Button className='all_single_leads_button' onClick={transferLeads}>
                         Transfer
                     </Button>
                 </Modal.Footer>

@@ -26,8 +26,8 @@ const { getIO } = require('../socket');
 const twilio = require('twilio');
 const Phonebook = require('../models/phonebookModel.js')
 
-const accountSid = 'AC9f10e22cf1b500ee219526db55a7c523'; 
-const authToken = 'd23214875886a2ce7c3412863d5fe541'; 
+const accountSid = 'AC48e99fa5d2a4ecdd660e8f5391e375ed'; 
+const authToken = '8d6ad3c2eb9063995cea53598eec5d93'; 
 const client = twilio(accountSid, authToken);
 const fromWhatsAppNumber = 'whatsapp:+14155238886'; 
 const axios = require('axios'); 
@@ -374,7 +374,184 @@ router.post('/send-sms', async (req, res) => {
     }
 });
 
-router.post('/create-lead', isAuth,hasPermission(['create_lead']) ,async (req, res) => {
+router.post('/create-lead', isAuth, hasPermission(['create_lead']), async (req, res) => {
+    try {
+        let {
+            clientPhone,
+            clientw_phone, // WhatsApp phone
+            clientName,
+            clientEmail,
+            cliente_id,
+            company_Name,
+            product_stage,
+            lead_type,
+            pipeline,
+            products,
+            source,
+            description,
+            branch,
+            thirdpartyname // New field to be added
+        } = req.body;
+
+        if (!product_stage) {
+            return res.status(400).json({ message: 'Missing required fields' });
+        }
+
+        const formatPhoneNumber = (phone) => {
+            if (!phone) return null;
+            const cleanedPhone = phone.replace(/\s+/g, '');
+            return cleanedPhone.startsWith('+971') ? cleanedPhone : `+971${cleanedPhone}`;
+        };
+
+        clientPhone = formatPhoneNumber(clientPhone);
+        clientw_phone = formatPhoneNumber(clientw_phone || clientPhone);
+
+        const branchId = new mongoose.Types.ObjectId(String(branch));
+        const productStageId = new mongoose.Types.ObjectId(String(product_stage));
+        const pipelineId = new mongoose.Types.ObjectId(String(pipeline));
+        const productId = new mongoose.Types.ObjectId(String(products));
+
+        const validProductStage = await ProductStage.findById(productStageId);
+        if (!validProductStage) {
+            return res.status(400).json({ message: 'Invalid product stage' });
+        }
+
+        const phonebookEntry = await Phonebook.findOne({ number: clientPhone }).populate('comments');
+        if (phonebookEntry) {
+            lead_type = '6719fda75035bf8bd708d03a';
+            source = '6719fda75035bf8bd708d03d';
+
+            if (phonebookEntry.status === "BLOCKED") {
+                req.body.is_blocklist_number = true;
+            }
+        } else {
+            lead_type = req.body.lead_type;
+            source = req.body.source;
+        }
+
+        const leadTypeId = new mongoose.Types.ObjectId(String(lead_type));
+        const sourceId = new mongoose.Types.ObjectId(String(source));
+
+        const validLeadType = await LeadType.findById(leadTypeId);
+        if (!validLeadType) {
+            return res.status(400).json({ message: 'Invalid lead type' });
+        }
+
+        let client = await Client.findOne({ phone: clientPhone });
+        if (client) {
+            const existingLeads = await Lead.findOne({ client: client._id });
+            if (existingLeads) {
+                return res.status(400).json({ message: 'Lead already exists for this client.' });
+            }
+        }
+
+        if (!client) {
+            const defaultPassword = '123';
+            const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+            client = new Client({
+                phone: clientPhone,
+                w_phone: clientw_phone,
+                e_id: cliente_id,
+                name: clientName || '',
+                email: clientEmail || '',
+                password: hashedPassword,
+            });
+            await client.save();
+        }
+
+        const initialSelectedUsers = req.body.selected_users || [];
+        const initialUserIds = initialSelectedUsers.map(user => user._id.toString());
+        let allSelectedUserIds = [...initialUserIds, req.user._id.toString()];
+
+        const ceoUsers = await User.find({ role: 'CEO' }).select('_id name');
+        const superadminUsers = await User.find({ role: 'superadmin' }).select('_id name');
+        const mdUsers = await User.find({ role: 'MD' }).select('_id name');
+        const managerUsers = await User.find({
+            $or: [
+                { role: 'Manager', branch: branchId, pipeline: pipelineId },
+                { role: 'Manager', branch: null, pipeline: pipelineId }
+            ]
+        }).select('_id name');
+        const hodUsers = await User.find({ role: 'HOD', pipeline: pipelineId }).select('_id name');
+
+        allSelectedUserIds = [
+            ...allSelectedUserIds,
+            ...ceoUsers.map(user => user._id.toString()),
+            ...superadminUsers.map(user => user._id.toString()),
+            ...mdUsers.map(user => user._id.toString()),
+            ...hodUsers.map(user => user._id.toString()),
+            ...managerUsers.map(user => user._id.toString())
+        ];
+
+        if (validLeadType.name === 'Marketing') {
+            const marketingUsers = await User.find({ role: 'Marketing' }).select('_id name');
+            const developerUsers = await User.find({ role: 'Developer' }).select('_id name');
+            allSelectedUserIds.push(...marketingUsers.map(user => user._id.toString()));
+            allSelectedUserIds.push(...developerUsers.map(user => user._id.toString()));
+        }
+
+        const uniqueUserIds = [...new Set(allSelectedUserIds)];
+
+        const newLead = new Lead({
+            client: client._id,
+            clientName,
+            product_stage: productStageId,
+            lead_type: leadTypeId,
+            pipeline_id: pipelineId,
+            source: sourceId,
+            products: productId,
+            description,
+            branch: branchId,
+            selected_users: uniqueUserIds,
+            company_Name,
+            created_by: req.user._id,
+            is_blocklist_number: req.body.is_blocklist_number || false,
+            phonebookcomments: phonebookEntry ? phonebookEntry.comments.map(comment => comment._id) : []
+        });
+
+        const savedLead = await newLead.save();
+
+        if (phonebookEntry) {
+            phonebookEntry.calstatus = 'Convert to Lead';
+            phonebookEntry.lead_id = savedLead._id;
+            await phonebookEntry.save();
+        }
+
+        const message = 'Thanks for registering';
+        const formattedTo = client.w_phone || clientPhone;
+
+        try {
+            await axios.post('http://192.168.2.137:4000/api/leads/send-sms', {
+                to: formattedTo,
+                message: message
+            });
+        } catch (smsError) {
+            console.error('Error sending SMS:', smsError);
+        }
+
+        const activityLog = new ActivityLog({
+            lead_id: savedLead._id,
+            log_type: 'Lead Created',
+            remark: `Lead created by ${req.user.name || req.user.email} for client ${client.name || client.phone}`,
+            user_id: req.user._id,
+            created_at: new Date()
+        });
+        await activityLog.save();
+        savedLead.activity_logs.push(activityLog._id);
+        await savedLead.save();
+
+        return res.status(201).json(savedLead);
+    } catch (error) {
+        console.error('Error creating lead:', error);
+        return res.status(500).json({ message: 'Error creating lead', error: error.message });
+    }
+});
+
+
+
+
+
+router.post('/create-lead-for-phone-book', isAuth, hasPermission(['create_lead']), async (req, res) => {
     try {
         let {
             clientPhone,
@@ -401,7 +578,6 @@ router.post('/create-lead', isAuth,hasPermission(['create_lead']) ,async (req, r
         // Format clientPhone and clientw_phone
         const formatPhoneNumber = (phone) => {
             if (!phone) return null;
-            // Remove all spaces and ensure phone number starts with +971
             const cleanedPhone = phone.replace(/\s+/g, ''); // Remove spaces
             return cleanedPhone.startsWith('+971') ? cleanedPhone : `+971${cleanedPhone}`;
         };
@@ -414,7 +590,7 @@ router.post('/create-lead', isAuth,hasPermission(['create_lead']) ,async (req, r
         let leadTypeId = new mongoose.Types.ObjectId(String(lead_type));
         const pipelineId = new mongoose.Types.ObjectId(String(pipeline));
         let sourceId = new mongoose.Types.ObjectId(String(source));
-        const productId = new mongoose.Types.ObjectId(String(products)); // Single ObjectId
+        const productId = new mongoose.Types.ObjectId(String(products));
 
         // Validate product_stage and lead_type
         const validProductStage = await ProductStage.findById(productStageId);
@@ -426,7 +602,6 @@ router.post('/create-lead', isAuth,hasPermission(['create_lead']) ,async (req, r
         // Check if client already exists in Client collection
         let client = await Client.findOne({ phone: clientPhone });
         if (client) {
-            // If client exists, check if there is already a lead for the client
             const existingLeads = await Lead.findOne({ client: client._id });
             if (existingLeads) {
                 return res.status(400).json({ message: 'Lead already exists for this client.' });
@@ -451,7 +626,7 @@ router.post('/create-lead', isAuth,hasPermission(['create_lead']) ,async (req, r
         // Get selected_users and unique user IDs
         const initialSelectedUsers = req.body.selected_users || [];
         const initialUserIds = initialSelectedUsers.map(user => user._id.toString());
-        let allSelectedUserIds = [...initialUserIds, req.user._id.toString()]; // Include current user
+        let allSelectedUserIds = [...initialUserIds, req.user._id.toString()];
 
         // Filter users by role and branch
         const ceoUsers = await User.find({ role: 'CEO' }).select('_id name');
@@ -474,7 +649,6 @@ router.post('/create-lead', isAuth,hasPermission(['create_lead']) ,async (req, r
             ...managerUsers.map(user => user._id.toString())
         ];
 
-        // Add Marketing and Developer roles if lead_type is "Marketing"
         if (validLeadType.name === 'Marketing') {
             const marketingUsers = await User.find({ role: 'Marketing' }).select('_id name');
             const developerUsers = await User.find({ role: 'Developer' }).select('_id name');
@@ -482,7 +656,7 @@ router.post('/create-lead', isAuth,hasPermission(['create_lead']) ,async (req, r
             allSelectedUserIds.push(...developerUsers.map(user => user._id.toString()));
         }
 
-        const uniqueUserIds = [...new Set(allSelectedUserIds)]; // Get unique user IDs
+        const uniqueUserIds = [...new Set(allSelectedUserIds)];
 
         // Create a new lead
         const newLead = new Lead({
@@ -502,10 +676,16 @@ router.post('/create-lead', isAuth,hasPermission(['create_lead']) ,async (req, r
 
         const savedLead = await newLead.save();
 
-        // Send SMS to client
-        const message = 'Thanks for registering'; // SMS message
-        const formattedTo = client.w_phone || clientPhone; // Use WhatsApp phone if available
+        // Find matching phone number in Phonebook and update lead_id
+        await Phonebook.findOneAndUpdate(
+            { number: clientPhone },
+            { lead_id: savedLead._id },
+            { new: true }
+        );
 
+        // Send SMS to client
+        const message = 'Thanks for registering';
+        const formattedTo = client.w_phone || clientPhone;
         try {
             await axios.post('http://192.168.2.137:4000/api/leads/send-sms', {
                 to: formattedTo,
@@ -533,6 +713,8 @@ router.post('/create-lead', isAuth,hasPermission(['create_lead']) ,async (req, r
         return res.status(500).json({ message: 'Error creating lead', error: error.message });
     }
 });
+
+
 
 // Helper function to validate and convert strings to ObjectIds
 const convertToObjectId = id => {
@@ -689,7 +871,7 @@ router.put('/reject-lead/:leadId', isAuth, hasPermission(['reject_lead']), async
 });
 
 // Route to get all leads that are not rejected (is_reject: false)
-router.get('/rejected-leads', isAuth, async (req, res) => {
+router.get('/rejected-leads', isAuth, async (req, res) => { 
     try {
         const userId = req.user._id;  
 
@@ -740,103 +922,182 @@ router.get('/rejected-leads', isAuth, async (req, res) => {
     }
 });
 
+// router.post('/check-client-phone', isAuth, async (req, res) => {
+//     try {
+//         const { clientPhone } = req.body;
 
+//         // Find client by phone
+//         const client = await Client.findOne({ phone: clientPhone });
+//         if (!client) {
+//             return res.status(404).json({ message: 'Client not found' });
+//         }
+
+//         // Find all leads associated with the client, populating all necessary fields
+//         const leads = await Lead.find({ client: client._id })
+//             .populate({
+//                 path: 'pipeline_id', // Populate the pipeline_id field with full details
+//             })
+//             .populate({
+//                 path: 'product_stage', // Populate the product_stage field with full details
+//             })
+//             .populate({
+//                 path: 'products', // Populate the products field with full details
+//             })
+//             .populate({
+//                 path: 'client', // Populate client details
+//             })
+//             .populate({
+//                 path: 'lead_type', // Populate lead_type field with full details
+//             })
+//             .populate({
+//                 path: 'source', // Populate source field with full details
+//             })
+//             .populate({
+//                 path: 'selected_users', // Populate selected users with their full details
+//                 select: 'name email', // Only return relevant user details
+//             })
+//             .populate({
+//                 path: 'activity_logs', // Populate activity logs related to the lead
+//             })
+//             .populate({
+//                 path: 'files', // Populate any files related to the lead
+//             })
+//             .populate({
+//                 path: 'branch', // Populate branch details
+//             })
+//             .populate({
+//                 path: 'stage', // Populate the lead stage field with full details
+//             })
+//             .populate({
+//                 path: 'discussions', // Populate discussions related to the lead
+//             })
+//             .populate({
+//                 path: 'messages', // Populate messages related to the lead
+//             });
+
+//         if (leads.length === 0) {
+//             return res.status(404).json({ message: 'No leads found for this client' });
+//         }
+
+//         // Return full lead data, including populated fields
+//         const leadDetails = leads.map(lead => ({
+//             id: lead._id,
+//             client: lead.client, // Include full client details
+//             createdBy: lead.created_by, // Include details of the creator
+//             selectedUsers: lead.selected_users, // Include details of selected users
+//             pipeline: lead.pipeline_id, // Full pipeline details
+//             stage: lead.stage, // Full lead stage details
+//             productStage: lead.product_stage, // Full product stage details
+//             products: lead.products, // Full products details
+//             leadType: lead.lead_type, // Full lead type details
+//             source: lead.source, // Full source details
+//             notes: lead.notes || '', // Notes (if any)
+//             companyName: lead.company_Name || '', // Company name (if any)
+//             description: lead.description || '', // Description (if any)
+//             activityLogs: lead.activity_logs, // Full activity log details
+//             files: lead.files, // Full file details
+//             labels: lead.labels || [], // Labels (if any)
+//             branch: lead.branch, // Full branch details
+//             order: lead.order || '', // Order details (if any)
+//             thirdPartyName: lead.thirdpartyname || '', // Third-party name (if any)
+//             dealStage: lead.deal_stage || '', // Deal stage (if any)
+//             isActive: lead.is_active, // Lead active status
+//             isConverted: lead.is_converted, // Lead converted status
+//             isRejected: lead.is_reject, // Lead rejected status
+//             isTransferred: lead.is_transfer, // Lead transfer status
+//             date: lead.date, // Lead date
+//             messages: lead.messages, // WhatsApp messages related to the lead
+//             createdAt: lead.created_at, // Created timestamp
+//             updatedAt: lead.updated_at, // Updated timestamp
+//         }));
+
+//         res.status(200).json(leadDetails); // Send an array of detailed lead objects
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// });
 
 router.post('/check-client-phone', isAuth, async (req, res) => {
     try {
         const { clientPhone } = req.body;
 
-        // Find client by phone
+        // Try to find the client by phone number
         const client = await Client.findOne({ phone: clientPhone });
-        if (!client) {
-            return res.status(404).json({ message: 'Client not found' });
+
+        if (client) {
+            // If the client is found, retrieve associated leads
+            const leads = await Lead.find({ client: client._id })
+                .populate('pipeline_id')
+                .populate('product_stage')
+                .populate('products')
+                .populate('client')
+                .populate('lead_type')
+                .populate('source')
+                .populate({ path: 'selected_users', select: 'name email' })
+                .populate('activity_logs')
+                .populate('files')
+                .populate('branch')
+                .populate('stage')
+                .populate('discussions')
+                .populate('messages');
+
+            const leadDetails = leads.map(lead => ({
+                id: lead._id,
+                client: lead.client,
+                createdBy: lead.created_by,
+                selectedUsers: lead.selected_users,
+                pipeline: lead.pipeline_id,
+                stage: lead.stage,
+                productStage: lead.product_stage,
+                products: lead.products,
+                leadType: lead.lead_type,
+                source: lead.source,
+                notes: lead.notes || '',
+                companyName: lead.company_Name || '',
+                description: lead.description || '',
+                activityLogs: lead.activity_logs,
+                files: lead.files,
+                labels: lead.labels || [],
+                branch: lead.branch,
+                order: lead.order || '',
+                thirdPartyName: lead.thirdpartyname || '',
+                dealStage: lead.deal_stage || '',
+                isActive: lead.is_active,
+                isConverted: lead.is_converted,
+                isRejected: lead.is_reject,
+                isTransferred: lead.is_transfer,
+                date: lead.date,
+                messages: lead.messages,
+                createdAt: lead.created_at,
+                updatedAt: lead.updated_at,
+            }));
+
+            // Return lead details only
+            return res.status(200).json({ leadDetails, phonebookEntry: null });
+        } else {
+            // If client is not found, check in the phone book
+            const phonebookEntry = await Phonebook.findOne({ number: clientPhone })
+                .populate('user', 'name email')
+                .populate('pipeline')
+                .populate('uploaded_by', 'name')
+                .populate('comments')
+                .populate('visibility', 'name email');
+
+            if (phonebookEntry) {
+                // Return an empty leadDetails array with phonebookEntry if found
+                return res.status(200).json({ leadDetails: [], phonebookEntry });
+            } else {
+                // If neither client nor phone book entry is found, return not found
+                return res.status(404).json({ message: 'Client and phone book entry not found' });
+            }
         }
-
-        // Find all leads associated with the client, populating all necessary fields
-        const leads = await Lead.find({ client: client._id })
-            .populate({
-                path: 'pipeline_id', // Populate the pipeline_id field with full details
-            })
-            .populate({
-                path: 'product_stage', // Populate the product_stage field with full details
-            })
-            .populate({
-                path: 'products', // Populate the products field with full details
-            })
-            .populate({
-                path: 'client', // Populate client details
-            })
-            .populate({
-                path: 'lead_type', // Populate lead_type field with full details
-            })
-            .populate({
-                path: 'source', // Populate source field with full details
-            })
-            .populate({
-                path: 'selected_users', // Populate selected users with their full details
-                select: 'name email', // Only return relevant user details
-            })
-            .populate({
-                path: 'activity_logs', // Populate activity logs related to the lead
-            })
-            .populate({
-                path: 'files', // Populate any files related to the lead
-            })
-            .populate({
-                path: 'branch', // Populate branch details
-            })
-            .populate({
-                path: 'stage', // Populate the lead stage field with full details
-            })
-            .populate({
-                path: 'discussions', // Populate discussions related to the lead
-            })
-            .populate({
-                path: 'messages', // Populate messages related to the lead
-            });
-
-        if (leads.length === 0) {
-            return res.status(404).json({ message: 'No leads found for this client' });
-        }
-
-        // Return full lead data, including populated fields
-        const leadDetails = leads.map(lead => ({
-            id: lead._id,
-            client: lead.client, // Include full client details
-            createdBy: lead.created_by, // Include details of the creator
-            selectedUsers: lead.selected_users, // Include details of selected users
-            pipeline: lead.pipeline_id, // Full pipeline details
-            stage: lead.stage, // Full lead stage details
-            productStage: lead.product_stage, // Full product stage details
-            products: lead.products, // Full products details
-            leadType: lead.lead_type, // Full lead type details
-            source: lead.source, // Full source details
-            notes: lead.notes || '', // Notes (if any)
-            companyName: lead.company_Name || '', // Company name (if any)
-            description: lead.description || '', // Description (if any)
-            activityLogs: lead.activity_logs, // Full activity log details
-            files: lead.files, // Full file details
-            labels: lead.labels || [], // Labels (if any)
-            branch: lead.branch, // Full branch details
-            order: lead.order || '', // Order details (if any)
-            thirdPartyName: lead.thirdpartyname || '', // Third-party name (if any)
-            dealStage: lead.deal_stage || '', // Deal stage (if any)
-            isActive: lead.is_active, // Lead active status
-            isConverted: lead.is_converted, // Lead converted status
-            isRejected: lead.is_reject, // Lead rejected status
-            isTransferred: lead.is_transfer, // Lead transfer status
-            date: lead.date, // Lead date
-            messages: lead.messages, // WhatsApp messages related to the lead
-            createdAt: lead.created_at, // Created timestamp
-            updatedAt: lead.updated_at, // Updated timestamp
-        }));
-
-        res.status(200).json(leadDetails); // Send an array of detailed lead objects
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 });
+
 
 router.put('/add-user-to-lead/:leadId', isAuth, hasPermission(['add_user_lead']),async (req, res) => {
     try {
@@ -1142,7 +1403,7 @@ const storage = multer.diskStorage({
     }
 });
 
-// Allow multiple file uploads
+// Allow multiple file uploads 
 const upload = multer({ storage }).array('files', 10); // Max 10 files at a time (you can adjust this)
 // Route to handle multiple file uploads and link to the lead
 router.post('/upload-files/:leadId', isAuth, hasPermission(['file_upload']), (req, res) => {
@@ -1212,6 +1473,63 @@ router.post('/upload-files/:leadId', isAuth, hasPermission(['file_upload']), (re
         }
     });
 });
+
+// Delete file endpoint
+
+router.delete('/delete-file/:leadId/:fileId', isAuth, async (req, res) => {
+    try {
+        const { leadId, fileId } = req.params;
+
+        const lead = await Lead.findById(leadId);
+        if (!lead) {
+            return res.status(404).json({ message: 'Lead not found' });
+        }
+
+        const file = await File.findById(fileId);
+        if (!file) {
+            return res.status(404).json({ message: 'File not found' });
+        }
+
+        // Remove file from lead's files array
+        lead.files = lead.files.filter(id => id.toString() !== fileId);
+        
+        // Log the file deletion in activity logs
+        const activityLog = new ActivityLog({
+            log_type: 'File Deleted',
+            remark: `File ${file.file_name} was deleted by ${req.user.name || req.user.email}`,
+            user_id: req.user._id,
+            created_at: new Date()
+        });
+        await activityLog.save();
+        
+        lead.activity_logs.push(activityLog._id);
+
+        // Delete the file document from the database
+        await File.findByIdAndDelete(fileId);
+
+        // Construct the file path for deletion
+        const filePath = path.join(__dirname, `../${file.file_path}`);
+        
+        // Check if the file exists before attempting to delete
+        if (fs.existsSync(filePath)) {
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    console.error('Error deleting file from filesystem:', err);
+                }
+            });
+        } else {
+            console.error('File does not exist in filesystem:', filePath);
+        }
+
+        await lead.save();
+
+        res.status(200).json({ message: 'File deleted and activity logged successfully' });
+    } catch (error) {
+        console.error('Error deleting file:', error);
+        res.status(500).json({ message: 'Error deleting file' });
+    }
+});
+
 /// Add Discussion in the lead Model  
 router.post('/add-discussion/:leadId', isAuth, async (req, res) => {
     try {
@@ -1268,9 +1586,9 @@ router.post('/add-discussion/:leadId', isAuth, async (req, res) => {
         res.status(500).json({ message: 'Error adding discussion' });
     }
 });
-
+ 
 /// Transfer Lead 
-router.put('/transfer-lead/:id', isAuth,hasPermission(['transfer_lead']),  async (req, res) => {
+router.put('/transfer-lead/:id', isAuth, hasPermission(['transfer_lead']), async (req, res) => {
     try {
         const leadId = req.params.id;
         const { pipeline, branch, product_stage, products } = req.body;
@@ -1337,34 +1655,35 @@ router.put('/transfer-lead/:id', isAuth,hasPermission(['transfer_lead']),  async
         const ceoUsers = await User.find({ role: 'CEO' }).select('_id name');
         const superadminUsers = await User.find({ role: 'superadmin' }).select('_id name');
         const mdUsers = await User.find({ role: 'MD' }).select('_id name');
-        const hodUsers = await User.find({ role: 'HOD' , pipeline: pipelineId }).select('_id name'); // HOD with no branch filter
+        const hodUsers = await User.find({ role: 'HOD', pipeline: pipelineId }).select('_id name');
         const managerUsers = await User.find({
+            pipeline: pipelineId,
             role: 'Manager',
             branch: branchId, // Filter managers by branch
         }).select('_id name');
-        // Find HOD users from the previous pipeline and previous branch 
+
+        // Find the previous pipeline HOD user from the previous pipeline and branch
         const previousPipelineId = lead.pipeline_id;
         const previousBranchId = lead.branch;
 
-        const previousPipelineHodUsers = await User.find({
+        const previousPipelineHodUser = await User.findOne({
             role: 'HOD',
             pipeline: previousPipelineId,
-            branch: previousBranchId
+            // branch: previousBranchId,
         }).select('_id');
 
-        // Get the original creator of the lead
-        const createdByUserId = lead.created_by.toString();
+        // Set `ref_user` to the previous HOD user if it exists
+        lead.ref_user = previousPipelineHodUser ? previousPipelineHodUser._id : null;
 
         // Combine all selected user IDs
         const newSelectedUserIds = [
             req.user._id.toString(),
-            createdByUserId,
-            ...previousPipelineHodUsers.map(user => user._id.toString()),
+            lead.created_by.toString(),
             ...ceoUsers.map(user => user._id.toString()),
             ...superadminUsers.map(user => user._id.toString()),
             ...mdUsers.map(user => user._id.toString()),
-            ...hodUsers.map(user => user._id.toString()), // Include HOD without branch restriction
-            ...managerUsers.map(user => user._id.toString()), // Manager filtered by branch
+            ...hodUsers.map(user => user._id.toString()),
+            ...managerUsers.map(user => user._id.toString()),
         ];
 
         // Merge selected users, ensuring there are no duplicates
@@ -1374,7 +1693,7 @@ router.put('/transfer-lead/:id', isAuth,hasPermission(['transfer_lead']),  async
         lead.pipeline_id = pipelineId;
         lead.branch = branchId;
         lead.product_stage = productStageId;
-        lead.is_transfer = true;  // Set the is_transfer field to true 
+        lead.is_transfer = true;
 
         // Save the updated lead
         const updatedLead = await lead.save();
@@ -1385,7 +1704,7 @@ router.put('/transfer-lead/:id', isAuth,hasPermission(['transfer_lead']),  async
             log_type: 'Lead Transfer',
             remark: changes.length ? `Lead transferred: ${changes.join(', ')}` : 'Lead transferred with no significant changes',
             created_at: Date.now(),
-            updated_at: Date.now()
+            updated_at: Date.now(),
         });
         await activityLog.save();
 
@@ -1399,6 +1718,8 @@ router.put('/transfer-lead/:id', isAuth,hasPermission(['transfer_lead']),  async
         res.status(500).json({ message: 'Error transferring lead' });
     }
 });
+
+
 
 const getUniqueUserIds = (userIds) => {
     const uniqueUserMap = {};
@@ -1520,16 +1841,28 @@ router.put('/move-lead/:id', isAuth, hasPermission(['move_lead']), async (req, r
     }
 });
 
-router.get('/single-lead/:id', isAuth, hasPermission(['view_lead']),async (req, res) => {
+router.get('/single-lead/:id', isAuth, hasPermission(['view_lead']), async (req, res) => {
     try {
-        const { id } = req.params; // Extract lead ID from request parameters
+        const { id } = req.params; // Extract lead ID from request parameters 
 
         // Validate the ID format
         if (!mongoose.isValidObjectId(id)) {
             return res.status(400).json({ message: 'Invalid lead ID format' });
         }
 
-        // Find the lead by ID and populate necessary fields, including specific fields for nested documents
+        // Step 1: Fetch the lead with only the selected_users field
+        const leadForAuthCheck = await Lead.findById(id).select('selected_users');
+        if (!leadForAuthCheck) {
+            return res.status(404).json({ message: 'Lead not found' });
+        }
+
+        // Step 2: Check if req.user._id is in the selected_users of the lead
+        const isAuthorized = leadForAuthCheck.selected_users.some(userId => userId.equals(req.user._id));
+        if (!isAuthorized) {
+            return res.status(403).json({ message: 'You are not authorized to view this lead' });
+        }
+
+        // Step 3: Fetch the full lead details and populate necessary fields
         const lead = await Lead.findById(id)
             .populate({
                 path: 'client',
@@ -1541,8 +1874,8 @@ router.get('/single-lead/:id', isAuth, hasPermission(['view_lead']),async (req, 
             })
             .populate({
                 path: 'selected_users',
-                match: { role: { $nin: [ 'CEO', 'MD','Developer','Marketing'] } },  
-                select: 'name role image', 
+                match: { role: { $nin: ['CEO', 'MD', 'Developer', 'Marketing'] } },
+                select: 'name role image',
             })
             .populate({
                 path: 'pipeline_id',
@@ -1569,18 +1902,26 @@ router.get('/single-lead/:id', isAuth, hasPermission(['view_lead']),async (req, 
                 select: 'name'
             })
             .populate({
-                path: 'labels',  
-                select: 'name color', 
+                path: 'labels',
+                select: 'name color',
+            })
+            .populate({
+                path: 'phonebookcomments',
+                populate: {
+                    path: 'user', // Assuming the Comment model references the User model via 'user' field
+                    select: 'name image'
+                },
+                select: 'remarks createdAt' // Select relevant fields from Comment
             })
             .populate({
                 path: 'messages',
                 populate: [
                     {
-                        path: 'client', 
+                        path: 'client',
                         select: 'name'
                     },
                     {
-                        path: 'user', 
+                        path: 'user',
                         select: 'name'
                     }
                 ]
@@ -1594,7 +1935,7 @@ router.get('/single-lead/:id', isAuth, hasPermission(['view_lead']),async (req, 
             })
             .populate({
                 path: 'files',
-                // You can uncomment the following if you want to populate the `created_by` in `files`
+                // Uncomment if you want to populate the `created_by` in `files`
                 // populate: {
                 //     path: 'created_by',
                 //     select: 'name image'
@@ -1608,15 +1949,11 @@ router.get('/single-lead/:id', isAuth, hasPermission(['view_lead']),async (req, 
                 }
             });
 
-        if (!lead) {
-            return res.status(404).json({ message: 'Lead not found' });
-        }
-
         res.status(200).json(lead);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }
-});
+}); 
 
 // Update product_stage of a lead
 router.put('/update-product-stage/:leadId', isAuth, hasPermission(['update_product_stage']), async (req, res) => {

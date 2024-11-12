@@ -18,14 +18,19 @@ const Login = () => {
     const navigate = useNavigate();
     const loading = useSelector((state) => state.loginSlice.loading);
     const loginStatus = useSelector((state) => state.loginSlice.user);
+    const userRole = useSelector((state) => state.loginSlice.user?.role);
     const [showError, setShowError] = useState(true);
     const error = useSelector((state) => state.loginSlice.error);
 
     useEffect(() => {
         if (loginStatus) {
-            navigate('/leads');
+            if (userRole === 'TS Agent' || userRole === 'Team Leader') {
+                navigate('/phonebook');
+            } else {
+                navigate('/leads');
+            }
         }
-    }, [loginStatus, navigate]);
+    }, [loginStatus, userRole, navigate]);
 
     const formHandler = (event) => {
         event.preventDefault();
@@ -39,8 +44,8 @@ const Login = () => {
                 email: formData.get('email'),
                 password: formData.get('password'),
             };
-            dispatch(loginApi(values));
-            navigate('/leads');
+            dispatch(loginApi(values)); // Assuming loginApi sets loginStatus and role in the Redux store
+            // navigate('/leads');
         }
     };
 
@@ -73,12 +78,12 @@ const Login = () => {
 
                 <div className='mt-2' >
                     <p style={{ color: 'white' }} >Today is a new day. It's your day. You shape it.
-                        Sign in to start managing your projects.
+                        Sign in to start Managing your Projects.
                     </p>
                 </div>
                 <Form noValidate onSubmit={formHandler}  >
                     <Form.Group controlId="formBasicEmail">
-                        <Form.Label className='mt-2' style={{ fontWeight: '500',color: 'white' }} >Email</Form.Label>
+                        <Form.Label className='mt-2' style={{ fontWeight: '500', color: 'white' }} >Email</Form.Label>
                         <Form.Control
                             type="email"
                             name="email"
@@ -92,7 +97,7 @@ const Login = () => {
                     </Form.Group>
 
                     <Form.Group controlId="formBasicPassword">
-                        <Form.Label className='mt-2' style={{ fontWeight: '500',color: 'white' }}
+                        <Form.Label className='mt-2' style={{ fontWeight: '500', color: 'white' }}
                         >Password</Form.Label>
                         <Form.Control
                             type="password"

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Form, Container, Row, Col, Card, Button } from 'react-bootstrap';
+import { Table, Form, Container, Row, Col, Card, Button, Image } from 'react-bootstrap';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Navbar from '../../Components/navbar/Navbar';
 import Sidebar from '../../Components/sidebar/Sidebar';
+import blovkimage from '../../Assets/blovkimage.png';
 
 const Blocklist = () => {
     const token = useSelector(state => state.loginSlice.user?.token);
@@ -12,7 +13,7 @@ const Blocklist = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredNumbers, setFilteredNumbers] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 13; // Show 10 items per page
+    const itemsPerPage = 30; // Show 15 items per page
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -22,7 +23,7 @@ const Blocklist = () => {
             axios.get(`/api/phonebook/get-blocked-numbers`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 }
             })
                 .then(response => {
@@ -60,6 +61,10 @@ const Blocklist = () => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredNumbers.slice(indexOfFirstItem, indexOfLastItem);
 
+    const halfLength = Math.ceil(currentItems.length / 2);
+    const firstHalf = currentItems.slice(0, halfLength);
+    const secondHalf = currentItems.slice(halfLength);
+
     return (
         <div>
             <Container fluid>
@@ -69,7 +74,13 @@ const Blocklist = () => {
                     </Col>
                     <Col xs={12} md={12} lg={10}>
                         <Card className='leads_main_cards'>
-                            <h3 className='text-center' >
+                            <Image
+                                src={blovkimage}
+                                className='rejected_image'
+                                alt='Blocked Image'
+                                style={{ width: '140px', height: '140px', borderRadius: '50%' }}
+                            />
+                            <h3 className='text-center'>
                                 Total Blocked Numbers: {filteredNumbers.length}
                             </h3>
                             <div className="phonebook-container">
@@ -86,33 +97,48 @@ const Blocklist = () => {
 
                                 {currentItems.length > 0 ? (
                                     <>
-                                        <Table hover bordered responsive className='mt-3 table_main_container' size='md'>
-                                            <thead className='table_head' style={{ backgroundColor: '#f8f9fd' }}>
-                                                <tr
-                                                    className="teble_tr_class"
-                                                    style={{
-                                                        backgroundColor: '#e9ecef',
-                                                        color: '#343a40',
-                                                        borderBottom: '2px solid #dee2e6',
-                                                        transition: 'background-color 0.3s ease',
-                                                    }}
-                                                >
-                                                    <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Number</th>
-                                                    <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {currentItems.map((entry, index) => (
-                                                    <tr key={index}>
-                                                        <td className='table_td_class' style={{ textAlign: 'center' }}>{entry.number}</td>
-                                                        <td className='table_td_class' style={{ textAlign: 'center' }}>{entry.status}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </Table>
+                                        <Row className="mt-3">
+                                            <Col xs={12} md={6}>
+                                                <Table hover bordered responsive className='table_main_container' size='md'>
+                                                    <thead className='table_head' style={{ backgroundColor: '#f8f9fd' }}>
+                                                        <tr className="teble_tr_class" style={{ backgroundColor: '#e9ecef', color: '#343a40', borderBottom: '2px solid #dee2e6' }}>
+                                                            <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Number</th>
+                                                            <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {firstHalf.map((entry, index) => (
+                                                            <tr key={index}>
+                                                                <td className='table_td_class' style={{ textAlign: 'center' }}>{entry.number}</td>
+                                                                <td className='table_td_class' style={{ textAlign: 'center' }}>{entry.status}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </Table>
+                                            </Col>
+                                            <Col xs={12} md={6}>
+                                                <Table hover bordered responsive className='table_main_container' size='md'>
+                                                    <thead className='table_head' style={{ backgroundColor: '#f8f9fd' }}>
+                                                        <tr className="teble_tr_class" style={{ backgroundColor: '#e9ecef', color: '#343a40', borderBottom: '2px solid #dee2e6' }}>
+                                                            <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Number</th>
+                                                            <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {secondHalf.map((entry, index) => (
+                                                            <tr key={index}>
+                                                                <td className='table_td_class' style={{ textAlign: 'center' }}>{entry.number}</td>
+                                                                <td className='table_td_class' style={{ textAlign: 'center' }}>{entry.status}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </Table>
+                                            </Col>
+                                        </Row>
+
                                         <div className="d-flex justify-content-between">
                                             <Button
-                                                variant="primary"
+                                                className='all_single_leads_button'
                                                 onClick={handlePreviousPage}
                                                 disabled={currentPage === 1}
                                             >
@@ -120,7 +146,7 @@ const Blocklist = () => {
                                             </Button>
                                             <span>Page {currentPage} of {Math.ceil(filteredNumbers.length / itemsPerPage)}</span>
                                             <Button
-                                                variant="primary"
+                                                className='all_single_leads_button'
                                                 onClick={handleNextPage}
                                                 disabled={currentPage === Math.ceil(filteredNumbers.length / itemsPerPage)}
                                             >

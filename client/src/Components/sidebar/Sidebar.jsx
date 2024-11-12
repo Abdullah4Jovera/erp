@@ -175,42 +175,11 @@ const Sidebar = () => {
         <div className='sidebar_main_container'>
             <div className='sidebar_links'>
 
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }} >
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: '32px' }}>
                     <Image src={`/images/${userImage && userImage || defaultImage}`} alt={`${userName && userName} Image`} style={{ width: '120px', height: '120px', borderRadius: '50%', border: '1px solid white' }} />
-                    <p className='user_name_class mb-2' style={{ color: 'white' }} > {userName && userName} </p>
-                    <p className='user_email_class mb-0' style={{ color: 'white' }}> {userRole && userRole} </p>
+                    <p className='user_name_class mb-1 mt-2' style={{ color: 'white' }} > {userName && userName} </p>
+                    <p className='user_email_class mb-1' style={{ color: 'white' }}> {userRole && userRole} </p>
                     <p className='user_email_class mb-0' style={{ color: 'white' }}> {userEmail && userEmail} </p>
-                </div>
-
-                <div className='sidebar_section'>
-                    <div className='dropdown' onClick={() => toggleDropdown('leads')}>
-                        <span className='dropdown_title'>Leads Management <IoIosArrowDown /></span>
-                        {openDropdown === 'leads' && (
-                            <div className='dropdown_content'>
-                                <Link to={'/leads'} className='sidebar_link'>Leads</Link>
-                                <Link to={'/rejectedlead'} className='sidebar_link'>Rejected Leads</Link>
-                                {userRole === 'CEO' && (
-                                    <>
-                                        <Link to={'/ceounassign'} className='sidebar_link'>UnAssign Lead</Link>
-                                        <Link to={'/request'} className='sidebar_link'>
-                                            Lead Requests {actionCount > 0 && `(${actionCount})`} {pendingCount > 0 && `(${pendingCount})`}
-                                        </Link>
-                                        <Link to={'/createlabels'} className='sidebar_link'>Label Management</Link>
-                                    </>
-                                )}
-                                {(userRole === 'HOD' || userRole === 'Manager') && (
-                                    <>
-                                        <Link to={'/unsigned'} className='sidebar_link'>UnAssign Lead</Link>
-                                        <Link to={'/request'} className='sidebar_link'>
-                                            Lead Requests {actionCount > 0 && `(${actionCount})`} {pendingCount > 0 && `(${pendingCount})`}
-                                        </Link>
-                                        <Link to={'/createlabels'} className='sidebar_link'>Label Management</Link>
-                                    </>
-                                )}
-
-                            </div>
-                        )}
-                    </div>
                 </div>
 
                 {/* Phone Book */}
@@ -250,6 +219,37 @@ const Sidebar = () => {
                     </div>
                 </div>
 
+                <div className='sidebar_section'>
+                    <div className='dropdown' onClick={() => toggleDropdown('leads')}>
+                        <span className='dropdown_title'>Lead Management <IoIosArrowDown /></span>
+                        {openDropdown === 'leads' && (
+                            <div className='dropdown_content'>
+                                <Link to={'/leads'} className='sidebar_link'>Leads</Link>
+                                <Link to={'/rejectedlead'} className='sidebar_link'>Rejected Leads</Link>
+                                {userRole === 'CEO' && (
+                                    <>
+                                        <Link to={'/ceounassign'} className='sidebar_link'>UnAssign Lead</Link>
+                                        <Link to={'/request'} className='sidebar_link'>
+                                            Lead Requests {actionCount > 0 && `(${actionCount})`} {pendingCount > 0 && `(${pendingCount})`}
+                                        </Link>
+                                        <Link to={'/createlabels'} className='sidebar_link'>Label Management</Link>
+                                    </>
+                                )}
+                                {(userRole === 'HOD' || userRole === 'Manager' || userRole === 'Team Leader') && (
+                                    <>
+                                        <Link to={'/unsigned'} className='sidebar_link'>UnAssign Lead</Link>
+                                        <Link to={'/request'} className='sidebar_link'>
+                                            Lead Requests {actionCount > 0 && `(${actionCount})`} {pendingCount > 0 && `(${pendingCount})`}
+                                        </Link>
+                                        <Link to={'/createlabels'} className='sidebar_link'>Label Management</Link>
+                                    </>
+                                )}
+
+                            </div>
+                        )}
+                    </div>
+                </div>
+
                 {/* Contract */}
                 <div className='sidebar_section'>
                     <div className='dropdown' onClick={() => toggleDropdown('contract')}>
@@ -279,11 +279,13 @@ const Sidebar = () => {
                     </div>
                 )}
 
-                <Button onClick={handleShowNotifications} variant="primary">
+                <Link to={'/dashboard'} className='sidebar_link dropdown_title'>Dashboard</Link>
+
+                <Button onClick={handleShowNotifications} className='dropdown_title' style={{ border: 'none' }} >
                     Notifications ({unreadNotifications.length})
                 </Button>
 
-                <Button onClick={logoutHandler} variant="danger">
+                <Button onClick={logoutHandler} className='dropdown_title' style={{ border: 'none' }}>
                     Logout
                 </Button>
 
@@ -322,16 +324,6 @@ const Sidebar = () => {
                         </Button>
                     </Modal.Footer>
                 </Modal>
-
-                <style jsx>{`
-                nav {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 10px;
-                    background-color: #f8f9fa;
-                }
-            `}</style>
 
             </div>
         </div>

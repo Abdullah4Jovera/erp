@@ -256,7 +256,7 @@ const MoveLeads = ({ setMoveLeadModal, moveLeadModal, leadId, fetchLeadsData, fe
                         Close
                     </Button>
                     <Button
-                        className='all_move_lead_btn'
+                        className='all_single_leads_button'
                         disabled={!pipeline || !branch || !selectedProductStage}
                         onClick={moveLeadsHandler}
                     >

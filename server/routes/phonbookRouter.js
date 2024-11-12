@@ -170,6 +170,7 @@ router.post('/upload-csv', isAuth, upload.single('file'), async (req, res) => {
                         .map(([number, status]) => ({
                             user: userId,
                             pipeline: pipelineId,
+                            uploaded_by: requserId, // Add uploaded_by field
                             number: number,
                             status: status,
                         }));
@@ -238,6 +239,7 @@ router.get('/get-all-phonebook', isAuth , async (req, res) => {
             .populate('user', 'name')
             .populate('pipeline', 'name')
             .populate('visibility', 'name role')
+            .populate('uploaded_by', 'name role')
             .populate({
                 path: 'comments',
                 populate: {

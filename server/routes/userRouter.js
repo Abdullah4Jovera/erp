@@ -14,6 +14,8 @@ const Session = require('../models/sessionModel');
 const hasPermission = require('../hasPermission');
 const { notifyLogout } = require('../socket');
 const leadModel = require('../models/leadModel');
+const Product = require('../models/productModel'); // Adjust path as necessary
+
 // Configure multer for file uploads
 // Set up multer for file uploads
 const storage = multer.diskStorage({
@@ -24,7 +26,7 @@ const storage = multer.diskStorage({
     if (!fs.existsSync(uploadPath)) {
       // Create the directory if it doesn't exist
       fs.mkdirSync(uploadPath, { recursive: true });
-    }
+    } 
 
     cb(null, uploadPath);
   },
@@ -35,6 +37,37 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+
+
+router.get('/get-users-with-unactive-products', async (req, res) => {
+  try {
+    const users = await User.find({ delstatus: false })
+      .populate({
+        path: 'products',
+        match: { status: 'UnActive' }, // Filter to include only products with status "UnActive"
+        select: 'name status' // Select specific fields if needed
+      })
+      .exec();
+
+    // Filter out users without products or where the product has been filtered out (not UnActive)
+    const usersWithUnactiveProducts = users.filter(user => user.products && user.products.status === 'UnActive');
+
+    const imagePrefix = 'http://192.168.2.137:4000/images/';
+
+    // Prepend image path prefix
+    usersWithUnactiveProducts.forEach(user => {
+      if (user.image) {
+        user.image = `${imagePrefix}${user.image}`;
+      }
+    });
+
+    res.status(200).json(usersWithUnactiveProducts);
+  } catch (error) {
+    console.error('Error fetching users with UnActive products:', error);
+    res.status(500).json({ message: 'Error fetching users with UnActive products' });
+  }
+});
+
 
 
 router.patch('/resign-user/:id',  async (req, res) => {
@@ -320,7 +353,7 @@ router.get('/get-users', async (req, res) => {
 // Route to create a new user with image upload
 router.post('/create-user', upload.single('image'),isAuth,hasRole(['Super Admin', 'Developer']), async (req, res) => {
   try {
-    const { name, pipeline, email, password, role, branch, permissions, delStatus, verified, phone } = req.body;
+    const { name, pipeline, email, password, role, branch, permissions, delStatus, verified, phone,products,commission } = req.body;
 
     // Validate request body
     // if (!name || !pipeline || !email || !role || !branch) {
@@ -350,6 +383,8 @@ router.post('/create-user', upload.single('image'),isAuth,hasRole(['Super Admin'
       role,
       branch,
       permissions,
+      products,
+      commission,
       delStatus,
       verified,
       phone
@@ -437,7 +472,7 @@ router.post('/login', async (req, res) => {
 router.put('/update-user/:id', upload.single('image'),isAuth,hasRole(['Super Admin', 'Developer']), async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, pipeline, email, password, role, branch, delstatus, verified, products, phone } = req.body;
+    const { name, pipeline, email, password, role, branch, delstatus, verified, products, phone,commission } = req.body;
 
     // Find the user by ID
     const user = await User.findById(id);
@@ -496,6 +531,9 @@ router.put('/update-user/:id', upload.single('image'),isAuth,hasRole(['Super Adm
 
     if (products !== undefined) {
       user.products = products === null ? null : products;
+    }
+    if (commission !== commission) {
+      user.commission = commission === null ? null : commission;
     }
 
     if (phone !== undefined) {

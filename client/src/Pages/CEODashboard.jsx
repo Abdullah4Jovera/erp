@@ -82,6 +82,8 @@ const CeoDashboard = () => {
     const [phoneNumber, setPhoneNumber] = useState('')
     const [phoneNumberSuccess, setPhoneumberSuccess] = useState(false)
     const [apiData, setApiData] = useState(null);
+    const initialBranchId = localStorage.getItem('selectedBranchId') || branch || (branches.length > 0 ? branches[0]._id : null);
+    const initialProductId = localStorage.getItem('selectedProductId') || product || (products.length > 0 ? products[0]._id : null);
 
     // New Data
     const [selectedLeadType, setSelectedLeadType] = useState(null);
@@ -110,6 +112,30 @@ const CeoDashboard = () => {
 
         fetchSources();
     }, [selectedLeadType]);
+
+    useEffect(() => {
+        // Set default selected product and branch ID in localStorage if not already set
+        if (!localStorage.getItem('selectedProductId') && initialProductId) {
+            localStorage.setItem('selectedProductId', initialProductId);
+        }
+        if (!localStorage.getItem('selectedBranchId') && initialBranchId) {
+            localStorage.setItem('selectedBranchId', initialBranchId);
+        }
+    }, [initialProductId, initialBranchId]);
+
+    useEffect(() => {
+        // Update localStorage whenever selectedProductId changes
+        if (selectedProductId) {
+            localStorage.setItem('selectedProductId', selectedProductId);
+        }
+    }, [selectedProductId]);
+
+    useEffect(() => {
+        // Update localStorage whenever selectedBranchId changes
+        if (selectedBranchId) {
+            localStorage.setItem('selectedBranchId', selectedBranchId);
+        }
+    }, [selectedBranchId]);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -221,6 +247,7 @@ const CeoDashboard = () => {
     const getProductID = localStorage.getItem('selectedProductId')
     const getBranchID = localStorage.getItem('selectedBranchId')
 
+
     useEffect(() => {
         const fetchBranchesAndProducts = async () => {
             try {
@@ -317,7 +344,7 @@ const CeoDashboard = () => {
 
     const handleBranchSelect = (branchId) => {
         setSelectedBranchId(branchId);
-        localStorage.setItem('selectedBranchId', branchId);
+        console.log(branchId, 'selected Branch ID stored');
         if (selectedProductId) {
             fetchLeads(selectedProductId, branchId);
         }
@@ -326,6 +353,7 @@ const CeoDashboard = () => {
     const handleProductSelect = (productId) => {
         setSelectedProductId(productId);
         localStorage.setItem('selectedProductId', productId);
+        console.log(productId, 'selected Product ID stored');
         setSelectedPipeline('');
         setSelectedUsers('');
         fetchProductStages(productId);
@@ -713,11 +741,11 @@ const CeoDashboard = () => {
             {/* <Navbar /> */}
             <Container fluid>
                 <Row>
-                    <Col xs={12} md={12} lg={2}>
+                    <Col xs={12} md={12} lg={1}>
                         <Sidebar />
                     </Col>
 
-                    <Col xs={12} md={12} lg={10}>
+                    <Col xs={12} md={12} lg={11}>
                         <Card className='leads_main_cards'>
 
                             {/* <div className='mb-3 lead_search_container '  > */}
@@ -807,12 +835,13 @@ const CeoDashboard = () => {
                                             />
                                         </Form.Group>
                                     </Form>
-                                    <div className="create_lead_icon">
+                                    {/* <div className="create_lead_icon">
                                         <IoMdAdd
                                             style={{ fontSize: '24px', cursor: 'pointer' }}
                                             onClick={() => setModal2Open(true)}
                                         />
-                                    </div>
+                                    </div> */}
+                                    <Button style={{ backgroundColor: '#ffa000', border: 'none' }} onClick={() => setModal2Open(true)} >Create Lead</Button>
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className='mt-3' >
@@ -877,7 +906,7 @@ const CeoDashboard = () => {
 
                                 <DragDropContext onDragEnd={onDragEnd}>
                                     <div className="stages-wrapper d-flex overflow-auto mt-3" style={{ maxHeight: '70vh', overflowX: 'auto' }}>
-                                        {Array.isArray(stages) && stages.length > 0 ? (
+                                        {stages.length > 0 ? (
                                             // Sort stages by the 'order' field before rendering
                                             stages
                                                 .sort((a, b) => a.order - b.order)
@@ -886,7 +915,7 @@ const CeoDashboard = () => {
                                                         {(provided) => (
                                                             <Card
                                                                 className="stage-card"
-                                                                style={{ minWidth: '300px', margin: '0 7px', height: 'auto', borderRadius: '20px', }}
+                                                                style={{ minWidth: '268px', margin: '0 7px', height: 'auto', borderRadius: '20px', }}
                                                                 ref={provided.innerRef}
                                                                 {...provided.droppableProps}
                                                             >
@@ -1300,7 +1329,7 @@ const CeoDashboard = () => {
                     show={phoneNumberSuccess}
                     onHide={() => setPhoneumberSuccess(false)}
                 >
-                    <Modal.Body style={{backgroundColor:'#EFEFEF', borderRadius:'14px'}} >
+                    <Modal.Body style={{ backgroundColor: '#EFEFEF', borderRadius: '14px' }} >
                         <div >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className='mb-2'>
                                 <h4>Lead Already Exist</h4>

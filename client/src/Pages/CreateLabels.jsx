@@ -322,7 +322,7 @@ const LabelManagement = () => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button
-                        variant="secondary"
+                        className='all_close_btn_container'
                         onClick={() => {
                             // Reset state values
                             setNewLabelName('');
@@ -335,8 +335,8 @@ const LabelManagement = () => {
                     >
                         Close
                     </Button>
-                    <Button variant="primary" onClick={handleUpdateLabel}>
-                        Save Changes
+                    <Button className='all_single_leads_button' onClick={handleUpdateLabel}>
+                        Update
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -395,7 +395,7 @@ const LabelManagement = () => {
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => {
+                    <Button className='all_close_btn_container' onClick={() => {
                         setShowCreateModal(false);
                         setNewLabelName('');
                         setNewLabelColor('');
@@ -403,7 +403,7 @@ const LabelManagement = () => {
                     }}>
                         Close
                     </Button>
-                    <Button variant="primary" onClick={handleCreateLabel}>
+                    <Button className='all_single_leads_button' onClick={handleCreateLabel}>
                         Create Label
                     </Button>
                 </Modal.Footer>

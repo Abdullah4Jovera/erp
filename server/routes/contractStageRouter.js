@@ -24,7 +24,7 @@ router.post('/create-contract-stage', isAuth, hasPermission(['app_management']),
 });
 
 // Get all active contract stages
-router.get('/get-all-contract-stages', isAuth, hasPermission(['app_management']), async (req, res) => {
+router.get('/get-all-contract-stages', async (req, res) => {
     try {
         const stages = await ContractStage.find({ delStatus: false })
             .populate('created_by', 'name'); // Populate with creator's name

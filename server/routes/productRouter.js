@@ -5,7 +5,7 @@ const hasPermission = require('../hasPermission');
 const router = express.Router();
 
 // Create a new product
-router.post('/create-new-product' ,isAuth,hasPermission(['app_management']), async (req, res) => {
+router.post('/create-new-product' , async (req, res) => {
     try {
         const { name, pipeline_id } = req.body; // Include pipeline_id in request
 
@@ -28,7 +28,7 @@ router.post('/create-new-product' ,isAuth,hasPermission(['app_management']), asy
 router.get('/get-all-products',  async (req, res) => {
     try {
         // Find all products that are not marked as deleted and populate pipeline_id
-        const products = await Product.find({ delStatus: false }).populate('pipeline_id'); 
+        const products = await Product.find({ delStatus: false , status:'Active'}).populate('pipeline_id'); 
         res.status(200).json(products);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });

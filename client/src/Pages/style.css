@@ -12,15 +12,26 @@
     position: relative;
 }
 
+.rejected_lead_reason {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: 100%;
+    max-height: 300px;
+    overflow-y: scroll;
+}
 
-.all_single_leads_button,
-.all_single_leads_button:hover,
-.all_single_leads_button:active,
-.all_single_leads_button:visited,
-.all_single_leads_button:focus,
-.all_single_leads_button:focus-visible {
+
+.all_single_leads_button {
     background-color: rgb(215, 170, 71);
     border: none;
+    transition: background-color 0.3s ease;
+}
+
+.all_single_leads_button:hover,
+/* .all_single_leads_button:focus,
+.all_single_leads_button:active, */
+.all_single_leads_button:focus-visible {
+    background-image: linear-gradient(to right, black, rgb(215, 170, 71));
+    background-color: rgb(215, 170, 71);
 }
 
 .all_close_btn_container,
@@ -37,7 +48,6 @@
 .tooltip {
     position: absolute;
     bottom: 100%;
-    /* Adjust as necessary */
     left: 50%;
     transform: translateX(-50%);
     background-color: rgba(0, 0, 0, 0.7);
@@ -46,9 +56,7 @@
     border-radius: 4px;
     white-space: nowrap;
     z-index: 1000;
-    /* Ensure it's on top of other elements */
     transition: opacity 0.3s;
-    /* Optional smooth appearance */
 }
 
 .lead_information_data {
@@ -100,8 +108,6 @@
 
 }
 
-/* style.css */
-
 /* Container for stages with horizontal scroll */
 .stage-scroll-container {
     overflow-x: auto;
@@ -111,7 +117,6 @@
 .pdf_icon {
     width: 80px;
     height: 80px;
-    /* border-radius: 50%; */
 }
 
 .message_sender {
@@ -128,7 +133,6 @@
 .chat-history {
     border-radius: 5px;
 }
-
 
 /* Wrapper to hold all stages in a row */
 .stages-wrapper {
@@ -154,7 +158,7 @@
 }
 
 .marketing_source_lead_unassign {
-    background-color: #ec568b;
+    background-color: black;
     color: white;
     margin-top: 0.5rem;
     width: auto;
@@ -175,13 +179,16 @@
 }
 
 .product_stage_lead {
-    background-color: #023553;
+    background-color: black;
     color: white;
     margin-top: 0.5rem;
-    width: auto;
-    max-width: 110px;
-    border-radius: 8px;
-    padding: 2px 2px;
+    width: 95px;
+    height: 34px;
+    border-radius: 10px;
+    padding: 2px 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .Transfer_stage_lead {
@@ -195,13 +202,14 @@
 }
 
 .create_lead_icon {
-    background-color: greenyellow;
+    background-color: #ffa000;
     width: 40px;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 40px;
     border-radius: 50%;
+    color: white;
 }
 
 /* Stage card styling */
@@ -284,8 +292,8 @@
 }
 
 .single_lead_icons {
-    width: 45px;
-    height: 45px;
+    width: 25px;
+    height: 25px;
     border-radius: 17.3552px;
     color: #fff;
     display: flex;
@@ -297,8 +305,8 @@
 }
 
 .single_lead_icons_one {
-    width: 45px;
-    height: 45px;
+    width: 25px;
+    height: 25px;
     border-radius: 17.3552px;
     color: #fff;
     display: flex;
@@ -310,8 +318,8 @@
 }
 
 .single_lead_icons_two {
-    width: 45px;
-    height: 45px;
+    width: 25px;
+    height: 25px;
     border-radius: 17.3552px;
     color: #fff;
     display: flex;
@@ -330,17 +338,26 @@
 }
 
 .first_card {
+    padding: 0px 10px;
     display: flex;
-    align-items: center;
+    justify-content: flex-start;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.first_card_product {
+    /* padding: 0px 10px; */
+    display: flex;
     justify-content: space-between;
-    padding: 10px;
+    align-items: center;
 }
 
 .lead_users_delete_btn {
-    width: 30px;
-    height: 30px;
+    width: 25px;
+    height: 25px;
     border-radius: 10px;
-    background: linear-gradient(141.55deg, #ff3a6e 3.46%, #ff3a6e 99.86%), #ff3a6e !important;
+    background: #d7aa47;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -386,34 +403,55 @@
     justify-content: space-between;
     align-items: center;
 }
-.rejected_image{
+
+.rejected_image {
     position: absolute;
     right: 0;
-    top: 30px;
+    top: -8px;
     z-index: 1;
 }
 
 .lead_discussion_main_card {
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
     overflow-y: scroll;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
+.lead_discussion_main_card:hover {
+    transform: translateY(-5px);
+    box-shadow: rgba(0, 0, 0, 0.25) 3px 3px 6px;
 }
 
 .lead_discussion_main_card_user {
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
     height: auto;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #efefef;
+}
+
+.lead_discussion_main_card_user:hover {
+    transform: translateY(-5px);
+    box-shadow: rgba(0, 0, 0, 0.25) 3px 3px 6px;
 }
 
 .lead_discussion_main_card_description {
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-    height: auto;
+    /* overflow-y: scroll; */
+    height: 100%;
+    max-height: 320px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #efefef;
+}
+
+.lead_discussion_main_card_description:hover {
+    transform: translateY(-5px);
+    box-shadow: rgba(0, 0, 0, 0.25) 3px 3px 6px;
 }
 
 .lead_discussion_main_card_main {
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-    overflow-y: scroll;
     height: 100%;
-    max-height: 800px;
+    max-height: 400px;
 }
 
 .lead_discussion_main_card_activity_log {
@@ -432,27 +470,36 @@
     align-items: center;
 }
 
-.upload_btn,
-.upload_btn:active,
-.upload_btn:visited,
-.upload_btn:focus-visible,
-.upload_btn:focus,
-.upload_btn:hover {
+.upload_btn {
     background-color: #d7aa47;
     border: none;
+    transition: background-color 0.3s ease;
+}
+
+.upload_btn:hover,
+.upload_btn:focus,
+.upload_btn:active,
+.upload_btn:focus-visible {
+    background-image: linear-gradient(to right, black, #d7aa47);
+    background-color: #d7aa47;
 }
 
 .card_discussion {
-    height: auto;
-    /* max-height: auto; */
-    /* overflow-y: scroll; */
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
-    /* background: #000; */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+    max-height: 290px;
+    overflow-y: scroll;
+}
+
+.card_discussion:hover {
+    transform: translateY(-5px);
+    box-shadow: rgba(0, 0, 0, 0.25) 3px 3px 6px;
 }
 
 .card_discussion_chat_boat {
     height: 100%;
-    max-height: auto;
+    max-height: 400px;
     /* overflow-y: scroll; */
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
     background-color: #efe8dd;
@@ -469,10 +516,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #146142;
+    background-color: #d7aa47;
     height: 35px;
     width: 40px;
     border-radius: 50%;
+    cursor: pointer;
 }
 
 .details_btn_handler {
@@ -495,7 +543,7 @@
 
 .sending_message_btn {
     font-size: 20px;
-    color: black;
+    color: white;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -508,8 +556,8 @@
 }
 
 .image_control_discussion {
-    width: 50px;
-    height: 50px;
+    width: 10px;
+    height: 10px;
     border-radius: 20%;
 }
 
@@ -521,9 +569,9 @@
 }
 
 .image_control_discussion_files {
-    width: 80px;
-    height: 80px;
-    /* border-radius: 50%; */
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
 }
 
 .image-upload:hover {

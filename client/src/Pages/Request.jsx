@@ -3,10 +3,11 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { Col, Container, Image, Row, Card, Button, OverlayTrigger, Tooltip, Modal } from 'react-bootstrap';
 import Sidebar from '../Components/sidebar/Sidebar';
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import Select from 'react-select';
 import { TiDeleteOutline } from "react-icons/ti";
 import { AiFillDelete } from "react-icons/ai";
+import { GrView } from "react-icons/gr";
 
 const Request = () => {
     const [requests, setRequests] = useState([]);
@@ -19,6 +20,7 @@ const Request = () => {
     const [actionCount, setActionCount] = useState(0);
     const [delLabelModal, setDelLabelModal] = useState(false);
     const [deleteLabelId, setDeleteLabelId] = useState(null)
+    const navigate = useNavigate()
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
@@ -68,7 +70,7 @@ const Request = () => {
 
     useEffect(() => {
         fetchRequests();
-    }, [token, userId]);
+    }, [token]);
 
     const handleActionChange = async (requestId, action) => {
         try {
@@ -148,8 +150,8 @@ const Request = () => {
                     'Authorization': `Bearer ${token}`,
                 },
             })
-            setDelLabelModal(false)
             fetchRequests();
+            setDelLabelModal(false)
         } catch (error) {
             console.log(error, 'error')
         }
@@ -179,7 +181,31 @@ const Request = () => {
                                     defaultValue={actionOptions[0]}
                                     isClearable={false}
                                     placeholder="Filter by Action"
-                                    className="w-50"
+                                    className="custom-select w-50 w-sm-50"  // Ensure it's responsive
+                                    styles={{
+                                        control: (provided) => ({
+                                            ...provided,
+                                            borderRadius: '8px',  // Rounded corners
+                                            borderColor: '#ced4da',  // Subtle border color
+                                            padding: '2px',  // Padding for better touch targets
+                                            boxShadow: 'none',  // Remove default box-shadow
+                                        }),
+                                        menu: (provided) => ({
+                                            ...provided,
+                                            borderRadius: '8px',  // Rounded menu dropdown
+                                            boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',  // Subtle shadow for the dropdown
+                                        }),
+                                        option: (provided, state) => ({
+                                            ...provided,
+                                            backgroundColor: state.isSelected ? '#007bff' : 'white',  // Change color on select
+                                            color: state.isSelected ? 'white' : 'black',  // Adjust text color based on selection
+                                            padding: '10px',  // Padding for better legibility
+                                            cursor: 'pointer',
+                                            ':hover': {
+                                                backgroundColor: '#f1f1f1',  // Light hover effect
+                                            },
+                                        }),
+                                    }}
                                 />
                             </div>
 
@@ -189,65 +215,72 @@ const Request = () => {
                                 <>
                                     <Row>
                                         {currentRequests.map((request) => {
-                                            console.log(request, 'request')
                                             const imageSrc = request.sender.image
                                                 ? `/images/${request.sender.image}`
                                                 : null;
                                             return (
-                                                <Col key={request._id} xs={12} sm={6} md={6} lg={6} className="mb-4">
+                                                <Col key={request._id} xs={12} sm={12} md={12} lg={12} xxl={6} className="mb-4">
                                                     <Card style={{ width: '100%' }} className='lead_request_main_card' >
                                                         <Card.Body>
-                                                            <Card.Title className='request_message' >{request.message}</Card.Title>
-                                                            <Row className='mt-4' >
-                                                                <Col md={6} lg={6} >
-                                                                    <strong>Sender:</strong>
-                                                                    <Card.Subtitle className="mb-2 text-muted">
-                                                                        {imageSrc && (
-                                                                            <OverlayTrigger
-                                                                                placement="top"
-                                                                                overlay={<Tooltip id={`tooltip-sender`}>{request.sender.name}</Tooltip>}
-                                                                            >
-                                                                                <Image
-                                                                                    src={imageSrc}
-                                                                                    alt="Sender Image"
-                                                                                    style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                                                                                />
-                                                                            </OverlayTrigger>
-                                                                        )}
-                                                                        <span style={{ color: '#979797', fontWeight: '500' }} > {request.sender?.name}</span>
-                                                                    </Card.Subtitle>
-                                                                </Col>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
+                                                                <Card.Title className='request_message' >{request.message}</Card.Title>
+                                                                <div style={{ display: 'flex', gap: '8px', alignItems: 'start' }}>
+                                                                    <AiFillDelete onClick={() => DelRequestModal(request?._id)} style={{ fontSize: '20px', color: 'red', cursor: 'pointer' }} />
+                                                                    <GrView onClick={() => navigate(`/single-leads/${request?.lead_id?._id}`)} style={{ fontSize: '20px', color: '#d7aa47', cursor: 'pointer' }} />
+                                                                </div>
+                                                            </div>
+                                                            <Row className='mt-2'>
+                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
+                                                                    <div>
+                                                                        <strong>Sender:</strong>
+                                                                        <Card.Subtitle className="mb-2 text-muted">
+                                                                            {imageSrc && (
+                                                                                <OverlayTrigger
+                                                                                    placement="top"
+                                                                                    overlay={<Tooltip id={`tooltip-sender`}>{request.sender.name}</Tooltip>}
+                                                                                >
+                                                                                    <Image
+                                                                                        src={imageSrc}
+                                                                                        alt="Sender Image"
+                                                                                        style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+                                                                                    />
+                                                                                </OverlayTrigger>
+                                                                            )}
+                                                                            <span style={{ color: '#979797', fontWeight: '500' }} > {request.sender?.name}</span>
+                                                                        </Card.Subtitle>
+                                                                    </div>
 
-                                                                <Col md={6} lg={6} className='mt-1'>
-                                                                    <Card.Text>
-                                                                        <strong>Client:</strong>
-                                                                        <p style={{ color: '#979797', fontWeight: '500' }}>{request.lead_id?.client.name}</p>
-                                                                    </Card.Text>
-                                                                </Col>
+                                                                    <div className='mt-1'>
+                                                                        <Card.Text>
+                                                                            <strong>Client:</strong>
+                                                                            <p style={{ color: '#979797', fontWeight: '500' }}>{request.lead_id?.client.name}</p>
+                                                                        </Card.Text>
+                                                                    </div>
 
-                                                                <Col md={6} lg={6}>
-                                                                    <Card.Text>
-                                                                        <strong>Type:</strong>
-                                                                        <p style={{ color: '#979797', fontWeight: '500' }}>{request.type}</p>
-                                                                    </Card.Text>
-                                                                </Col>
+                                                                    <div>
+                                                                        <Card.Text>
+                                                                            <strong>Type:</strong>
+                                                                            <p style={{ color: '#979797', fontWeight: '500' }}>{request.type}</p>
+                                                                        </Card.Text>
+                                                                    </div>
 
-                                                                <Col md={6} lg={6}>
-                                                                    <Card.Text>
-                                                                        <strong>Action:</strong>
-                                                                        <p style={{ color: '#979797', fontWeight: '500' }}> {request.action || 'Pending'}</p>
-                                                                    </Card.Text>
-                                                                </Col>
+                                                                    <div>
+                                                                        <Card.Text>
+                                                                            <strong>Action:</strong>
+                                                                            <p style={{ color: '#979797', fontWeight: '500' }}> {request.action || 'Pending'}</p>
+                                                                        </Card.Text>
+                                                                    </div>
+                                                                </div>
 
                                                                 <Col md={6} lg={6}>
                                                                     <Card className='current_request_status' >
                                                                         <Card.Text>
                                                                             <strong>Current Status:</strong>
                                                                             <div>
-                                                                                <p className='mt-3'><strong>Branch:</strong> {request.lead_id?.branch?.name || 'N/A'}</p>
-                                                                                <p><strong>Product:</strong> {request.lead_id?.products?.name || 'N/A'}</p>
-                                                                                <p><strong>Pipeline:</strong> {request.lead_id?.pipeline_id?.name || 'N/A'}</p>
-                                                                                <p><strong>Product Stage:</strong> {request.lead_id?.product_stage?.name || 'N/A'}</p>
+                                                                                <p className='mt-3'><strong>Branch:</strong> {request.currentBranch?.name || 'N/A'}</p>
+                                                                                <p><strong>Product:</strong> {request?.currentProduct?.name || 'N/A'}</p>
+                                                                                <p><strong>Pipeline:</strong> {request.currentPipeline?.name || 'N/A'}</p>
+                                                                                <p><strong>Product Stage:</strong> {request.currentProductStage?.name || 'N/A'}</p>
                                                                             </div>
                                                                         </Card.Text>
                                                                     </Card>
@@ -268,8 +301,8 @@ const Request = () => {
                                                                 </Col>
                                                             </Row>
 
-                                                            <Card.Text className='mt-3' >
-                                                                <strong  >Receivers:</strong>
+                                                            <Card.Text className='mt-2' >
+                                                                <strong>Receivers:</strong>
                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                                                     {request.receivers?.map((receiver) => (
                                                                         <OverlayTrigger
@@ -285,57 +318,50 @@ const Request = () => {
                                                                         </OverlayTrigger>
                                                                     ))}
                                                                 </div>
-                                                                <Link
-                                                                    to={`/single-leads/${request?.lead_id?._id}`}
-                                                                    style={{ textDecoration: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                                                                    className='viewRequestLead mt-3'
-                                                                >
-                                                                    View Lead
-                                                                </Link>
+
+                                                                {request?.action !== 'Pending' && request?.actionChangedBy && (
+                                                                    <Card.Text className={`mt-3 ${request.action === 'Accept' ? 'text-success' : request.action === 'Decline' ? 'text-danger' : ''}`}>
+                                                                        Lead Request of type "{request?.type}"{request.action.toLowerCase()} by <strong>{request.actionChangedBy.name}</strong>
+                                                                        {request.actionChangedBy.image && (
+                                                                            <Image
+                                                                                src={`/images/${request?.actionChangedBy.image}`}
+                                                                                alt="Action Changed By"
+                                                                                style={{ width: '30px', height: '30px', borderRadius: '50%', marginLeft: '8px' }}
+                                                                            />
+                                                                        )}
+                                                                    </Card.Text>
+                                                                )}
+                                                                <div>
+
+                                                                    {request.action === 'Pending' && request.receivers?.some((receiver) => receiver._id === userId) && (
+                                                                        <div className="mt-3" style={{ display: 'flex', gap: '10px' }}>
+                                                                            <Button
+                                                                                variant="success"
+                                                                                onClick={() => handleActionChange(request._id, 'Accept')}
+                                                                            >
+                                                                                Accept
+                                                                            </Button>
+                                                                            <Button
+                                                                                variant="danger"
+                                                                                onClick={() => handleActionChange(request._id, 'Decline')}
+                                                                            >
+                                                                                Decline
+                                                                            </Button>
+                                                                        </div>
+                                                                    )}
+                                                                    {(request.action === 'Accept' || request.action === 'Decline') && request.sender && request.sender._id === userId && !request.read && (
+                                                                        <div className="mt-3" style={{ display: 'flex', gap: '10px' }}>
+                                                                            <Button
+                                                                                variant="success"
+                                                                                onClick={() => handleMarkReadChange(request._id)}
+                                                                            >
+                                                                                Mark as Read
+                                                                            </Button>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
                                                             </Card.Text>
 
-                                                            {request?.action !== 'Pending' && request?.actionChangedBy && (
-                                                                <Card.Text className={`mt-3 ${request.action === 'Accept' ? 'text-success' : request.action === 'Decline' ? 'text-danger' : ''}`}>
-                                                                    The Lead Request of type "{request?.type}" has been {request.action.toLowerCase()} by <strong>{request.actionChangedBy.name}</strong>
-                                                                    {request.actionChangedBy.image && (
-                                                                        <Image
-                                                                            src={`/images/${request?.actionChangedBy.image}`}
-                                                                            alt="Action Changed By"
-                                                                            style={{ width: '30px', height: '30px', borderRadius: '50%', marginLeft: '8px' }}
-                                                                        />
-                                                                    )}
-                                                                </Card.Text>
-                                                            )}
-                                                            {request.action === 'Pending' && request.receivers?.some((receiver) => receiver._id === userId) && (
-                                                                <div className="mt-3" style={{ display: 'flex', gap: '10px' }}>
-                                                                    <Button
-                                                                        variant="success"
-                                                                        onClick={() => handleActionChange(request._id, 'Accept')}
-                                                                    >
-                                                                        Accept
-                                                                    </Button>
-                                                                    <Button
-                                                                        variant="danger"
-                                                                        onClick={() => handleActionChange(request._id, 'Decline')}
-                                                                    >
-                                                                        Decline
-                                                                    </Button>
-                                                                </div>
-                                                            )}
-                                                            {(request.action === 'Accept' || request.action === 'Decline') && request.sender && request.sender._id === userId && !request.read && (
-                                                                <div className="mt-3" style={{ display: 'flex', gap: '10px' }}>
-                                                                    <Button
-                                                                        variant="success"
-                                                                        onClick={() => handleMarkReadChange(request._id)}
-                                                                    >
-                                                                        Mark as Read
-                                                                    </Button>
-                                                                </div>
-                                                            )}
-
-                                                            <div style={{ display: 'flex', justifyContent: 'flex-end' }} >
-                                                                <AiFillDelete onClick={() => DelRequestModal(request?._id)} style={{ fontSize: '30px', color: 'red', cursor: 'pointer' }} />
-                                                            </div>
                                                         </Card.Body>
                                                     </Card>
                                                 </Col>
@@ -344,10 +370,11 @@ const Request = () => {
                                     </Row>
 
                                     {/* Pagination */}
-                                    <div className="pagination mt-1 d-flex justify-content-center">
+                                    <div className="pagination mt-1 d-flex justify-content-center ">
                                         <Button
                                             onClick={() => handlePageChange(currentPage - 1)}
                                             disabled={currentPage === 1}
+                                            style={{ backgroundColor: '#d7aa47', border: 'none' }}
                                         >
                                             Previous
                                         </Button>
@@ -355,6 +382,7 @@ const Request = () => {
                                         <Button
                                             onClick={() => handlePageChange(currentPage + 1)}
                                             disabled={currentPage === totalPages}
+                                            style={{ backgroundColor: '#d7aa47', border: 'none' }}
                                         >
                                             Next
                                         </Button>

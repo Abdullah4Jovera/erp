@@ -1,11 +1,12 @@
 .lead-discussion-main-card-activity-log {
-    padding: 20px;
+    padding: 0px;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     height: 100%;
-    max-height: 350px;
+    max-height: 310px;
     overflow-y: scroll;
     margin-bottom: 4%;
+    background-color: #efefef;
 }
 
 .activity-heading {
@@ -16,18 +17,18 @@
 
 
 .image_control_discussion {
-    width: 50px;
-    height: 50px;
+    width: 30px;
+    height: 30px;
     border-radius: 20%;
 }
 
 .activity-log {
-    padding: 15px;
+    padding: 10px;
     border-radius: 8px;
     border: 1px solid #e0e0e0;
     background-color: #f9f9f9;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    max-height: 150px;
+    max-height: 100px;
     overflow: hidden;
     transition: transform 0.3s;
 }
@@ -69,6 +70,7 @@
 .log-remark {
     color: #666;
     margin: 5px 0 0;
+    font-size: 14px;
 }
 
 .log-date {

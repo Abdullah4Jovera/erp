@@ -53,7 +53,7 @@ const Navbar = () => {
 
     const markAsRead = async (notificationId) => {
         try {
-            const response = await fetch(`/api/notifications/mark-as-read/${notificationId}`, {
+            const response = await fetch(`http://192.168.2.137:4000/api/notifications/mark-as-read/${notificationId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
             });

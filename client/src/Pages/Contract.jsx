@@ -85,11 +85,11 @@ const Contract = () => {
         <div>
             <Container fluid>
                 <Row>
-                    <Col xs={12} md={12} lg={2}>
+                    <Col xs={12} md={12} lg={1}>
                         <Sidebar />
                     </Col>
 
-                    <Col xs={12} md={12} lg={10}>
+                    <Col xs={12} md={12} lg={11}>
                         <Card className='leads_main_cards'>
                             <h2 className="text-center mt-3"  >Contracts</h2>
 

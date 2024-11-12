@@ -11,7 +11,7 @@ const commissionPaymentSchema = new mongoose.Schema({
         ref: 'User', 
         required: true,
     },
-    paidAmount: {
+    paidCommission: {
         type: Number,
     },
     remainingCommission: {

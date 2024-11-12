@@ -108,81 +108,79 @@ const WhatsAppChat = ({ leadId }) => {
     const firstUserName = firstUser ? firstUser.name : 'the user'; // Default to 'the user' if no user exists
 
     return (
-        <Container>
-            <Card body style={{ padding: '5px 5px 0px 5px' }} className='card_discussion_chat_boat'>
-                <h5 className='text-center'>
-                    <RiWhatsappFill style={{ fontSize: '24px', color: '#4fc65a' }} /> WhatsApp Chat
-                </h5>
+        <Card body style={{ padding: '5px 5px 0px 5px', backgroundColor: 'white' }} className='card_discussion_chat_boat mutual_background_class'>
+            <h5 className='text-center'>
+                <RiWhatsappFill style={{ fontSize: '24px', color: '#4fc65a' }} /> <span className='mutual_class_color'>WhatsApp Chat</span>
+            </h5>
 
-                <div className="chat-history mb-3" style={{ height: '100%', maxHeight: '500px', display: 'flex', flexDirection: 'column' }}>
-                    <div
-                        className="chat-messages"
-                        style={{
-                            flex: '1',
-                            overflowY: 'auto',
-                            padding: '30px 5px 5px 5px',
-                            backgroundColor: '#0c141b',
-                            marginBottom: '10px', // Space between messages and input
-                        }}
-                    >
-                        {chatHistory.length > 0 ? (
-                            chatHistory.map((chat, index) => (
-                                <div
-                                    key={index}
+            <div className="chat-history mb-3" style={{ height: '100%', maxHeight: '315px', display: 'flex', flexDirection: 'column', overflowY: 'scroll' }}>
+                <div
+                    className="chat-messages"
+                    style={{
+                        flex: '1',
+                        overflowY: 'auto',
+                        padding: '30px 5px 5px 5px',
+                        backgroundColor: '#f5f5f5',
+                        marginBottom: '10px', // Space between messages and input
+                    }}
+                >
+                    {chatHistory.length > 0 ? (
+                        chatHistory.map((chat, index) => (
+                            <div
+                                key={index}
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: chat.user ? 'flex-end' : 'flex-start', // Adjusted to conditionally set alignment
+                                    margin: '10px 0'
+                                }}
+                            >
+                                <Card
+                                    className={`message_sender ${chat.user ? 'bg-green text-white' : ''}`} // Adjusting class for client
                                     style={{
-                                        display: 'flex',
-                                        justifyContent: chat.user ? 'flex-end' : 'flex-start', // Adjusted to conditionally set alignment
-                                        margin: '10px 0'
+                                        width: 'auto', // Removed 'maxWidth: auto' as it's not valid
+                                        borderRadius: '10px',
+                                        padding: '10px',
                                     }}
                                 >
-                                    <Card
-                                        className={`message_sender ${chat.user ? 'bg-green text-white' : ''}`} // Adjusting class for client
-                                        style={{
-                                            width: 'auto', // Removed 'maxWidth: auto' as it's not valid
-                                            borderRadius: '10px',
-                                            padding: '10px',
-                                        }}
-                                    >
-                                        <p className="mb-0" style={{ fontSize: '14px', padding: '0 5px' }}>
-                                            <strong style={{ fontSize: '12px', paddingRight: '5px' }}>
-                                                {chat.user ? chat.user.name : 'Client'}:
-                                            </strong>
-                                            {chat.message_body}
-                                        </p>
-                                    </Card>
-                                </div>
-                            ))
-                        ) : (
-                            <p style={{ color: 'white', fontSize: '12px' }}>
-                                Start a chat with {firstUserName}.
-                            </p>
-                        )}
-                        {/* Reference div to scroll to the bottom */}
-                        <div ref={chatEndRef} />
-                    </div>
-
-                    <div className='chat_text_container'>
-                        <Form.Group controlId="messageTextarea" className='chat_text_message w-100'>
-                            <Form.Control
-                                as="textarea"
-                                rows={1}
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                                placeholder="Type your message here..."
-                                className='chat_input_field_placeholder'
-                                ref={textareaRef} // Attach ref to the textarea
-                                maxLength={300}
-                            />
-                        </Form.Group>
-                        <div className='whatspp_send_message'>
-                            <FiSend onClick={handleSendMessage} className='sending_message_btn' />
-                        </div>
-                    </div>
+                                    <p className="mb-0" style={{ fontSize: '14px', padding: '0 5px' }}>
+                                        <strong style={{ fontSize: '12px', paddingRight: '5px' }}>
+                                            {chat.user ? chat.user.name : 'Client'}:
+                                        </strong>
+                                        {chat.message_body}
+                                    </p>
+                                </Card>
+                            </div>
+                        ))
+                    ) : (
+                        <p style={{ color: 'black', fontSize: '12px' }}>
+                            Start a chat with {firstUserName}.
+                        </p>
+                    )}
+                    {/* Reference div to scroll to the bottom */}
+                    <div ref={chatEndRef} />
                 </div>
 
-                {error && <p className="text-danger">{error}</p>}
-            </Card>
-        </Container>
+                <div className='chat_text_container'>
+                    <Form.Group controlId="messageTextarea" className='chat_text_message w-100'>
+                        <Form.Control
+                            as="textarea"
+                            rows={1}
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            placeholder="Type your message here..."
+                            className='chat_input_field_placeholder'
+                            ref={textareaRef} // Attach ref to the textarea
+                            maxLength={300}
+                        />
+                    </Form.Group>
+                    <div className='whatspp_send_message' onClick={handleSendMessage}>
+                        <FiSend className='sending_message_btn' />
+                    </div>
+                </div>
+            </div>
+
+            {error && <p className="text-danger">{error}</p>}
+        </Card>
     );
 };
 

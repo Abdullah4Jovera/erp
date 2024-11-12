@@ -214,41 +214,46 @@ const CEOunassignedLead = () => {
                                         key={lead.id}
                                         className="lead-card p-3 border rounded"
                                         style={{
-                                            minWidth: '220px',
-                                            maxWidth: '235px',
-                                            height: '300px',
+                                            // width: '215px',
+                                            height: '303px',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             justifyContent: 'space-between',
+                                            backgroundColor: '#efefef'
                                         }}
                                     >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                            <div style={{ width: '100%', maxWidth: '160px' }} >
-                                                <p style={{ fontWeight: '500' }}>{lead.client.name}</p>
-                                            </div>
+                                        <div style={{ display: 'flex', justifyContent: 'end', alignItems: 'start' }}>
                                             <MdDriveFileMove
-                                                style={{ fontSize: '26px', color: '#ffa000', cursor: 'pointer', marginRight: '5px' }}
+                                                style={{ fontSize: '20px', color: '#ffa000', cursor: 'pointer', marginRight: '5px' }}
                                                 onClick={() => openMoveModal(lead)}
                                             />
-                                            <GrView style={{ fontSize: '26px', color: '#ffa000', cursor: 'pointer' }} onClick={() => viewDescription(lead)} />
+                                            <GrView style={{ fontSize: '20px', color: '#ffa000', cursor: 'pointer' }} onClick={() => viewDescription(lead)} />
                                         </div>
+
+                                        <div style={{ width: '100%', maxWidth: '220px' }} className='mt-2 text-center'>
+                                            <p className='text-center' style={{ fontWeight: '500', color: '#979797' }}>{lead.client.name}</p>
+                                        </div>
+
                                         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }} >
-                                            <p>{lead.client.phone}</p>
-                                            <div className="product_stage_lead p-1">
-                                                <p className="mb-0 text-center" style={{ fontSize: '11px' }}>
-                                                    {lead.products?.name}
+                                            <p style={{ fontWeight: '600' }} >{lead.client.phone}</p>
+
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }} >
+                                                <div className="product_stage_lead p-1">
+                                                    <p className="mb-0 text-center" style={{ fontSize: '11px' }}>
+                                                        {lead.products?.name}
+                                                    </p>
+                                                </div>
+                                                <p className="mb-0 text-center" style={{ fontSize: '30px', cursor: 'pointer', color: '#3f51b5' }}>
+                                                    <FaFacebookSquare />
                                                 </p>
+                                                <div className="product_stage_lead">
+                                                    <p className="mb-0 text-center" style={{ fontSize: '11px' }}>
+                                                        {lead.lead_type?.name}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="marketing_source_lead">
-                                                <p className="mb-0 text-center" style={{ fontSize: '11px' }}>
-                                                    {lead.lead_type?.name}
-                                                </p>
-                                            </div>
-                                            <p className="mb-0 text-center" style={{ fontSize: '18px' }}>
-                                                <FaFacebookSquare />
-                                            </p>
                                         </div>
-                                        <p className="text-center mt-4" style={{ fontWeight: '500', fontSize: '16px' }}>
+                                        <p className="text-center mt-4" style={{ fontWeight: '500', fontSize: '16px', color: '#979797' }}>
                                             {new Date(lead.created_at).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'long',
@@ -262,17 +267,17 @@ const CEOunassignedLead = () => {
                                 ))}
                             </div>
                             {/* Pagination Controls */}
-                            <Pagination className="mt-3 justify-content-center">
-                                <Pagination.Prev
-                                    onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
-                                    disabled={currentPage === 1}
-                                />
-                                {renderPaginationItems()}
-                                <Pagination.Next
-                                    onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
-                                    disabled={currentPage === totalPages}
-                                />
-                            </Pagination>
+                                <Pagination className="mt-3 justify-content-center custom-pagination">
+                                    <Pagination.Prev
+                                        onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                    />
+                                    {renderPaginationItems()}
+                                    <Pagination.Next
+                                        onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                    />
+                                </Pagination>
                         </Card>
                     </Col>
                 </Row>

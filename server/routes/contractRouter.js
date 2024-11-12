@@ -15,6 +15,7 @@ const multer = require('multer');
 const ServiceCommission = require('../models/serviceCommissionModel');
 const Lead = require('../models/leadModel');
 const mongoose = require('mongoose');
+const DealStage = require('../models/dealStageModel');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -510,6 +511,12 @@ router.post('/convert-to-deal/:contractId', isAuth, async (req, res) => {
             return res.status(404).json({ error: 'Contract not found' });
         }
 
+        // Retrieve the deal stage with order "1"
+        const initialDealStage = await DealStage.findOne({ order: 1 });
+        if (!initialDealStage) {
+            return res.status(404).json({ error: 'Initial deal stage not found' });
+        }
+
         // Create a new deal based on the contract
         const newDeal = new Deal({
             client_id: contract.client_id._id,
@@ -517,7 +524,7 @@ router.post('/convert-to-deal/:contractId', isAuth, async (req, res) => {
             pipeline_id: contract.pipeline_id._id,
             source_id: contract.source_id._id,
             products: contract.products[0]._id,  // Assuming there's at least one product
-            deal_stage: '66e28cbb712e86a4131702f6',  // Initial deal stage (replace with appropriate stage ID)
+            deal_stage: initialDealStage._id,     // Dynamically set deal stage ID
             status: 'Active',  // Initial deal status
             created_by: userId,
             lead_id: contract.lead_id || null,
@@ -534,8 +541,7 @@ router.post('/convert-to-deal/:contractId', isAuth, async (req, res) => {
         // Update the contract to mark it as converted and transferred 
         contract.is_converted = true;
         contract.is_transfer = true;
-
-        await contract.save();  // Save the updated contract
+        await contract.save();
 
         // Optionally, log the activity (if you have activity logging set up)
         // const log = new DealActivityLog({
@@ -561,4 +567,5 @@ router.post('/convert-to-deal/:contractId', isAuth, async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 module.exports = router;

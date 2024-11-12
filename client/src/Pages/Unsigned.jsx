@@ -7,6 +7,7 @@ import Sidebar from '../Components/sidebar/Sidebar';
 import { IoMdAdd } from 'react-icons/io';
 import Select from 'react-select';
 import { Link } from 'react-router-dom';
+import { GrView } from "react-icons/gr";
 
 const UnassignedLead = () => {
     const token = useSelector((state) => state.loginSlice.user?.token);
@@ -20,6 +21,7 @@ const UnassignedLead = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [allUsers, setAllUsers] = useState([]);
+    console.log(allUsers, 'allUsers')
     const [userError, setUserError] = useState('');
     const [userModal, setUserModal] = useState(false);
     const [selectedLeadUsers, setSelectedLeadUsers] = useState([]);
@@ -171,9 +173,9 @@ const UnassignedLead = () => {
         return <div>Loading...</div>;
     }
 
-    if (error) {
-        return <div>{error}</div>;
-    }
+    // if (error) {
+    //     return <div>{error}</div>;
+    // }
 
     if (filteredLeads.length === 0) {
         return <div>No unassigned leads found for this product</div>;
@@ -199,6 +201,11 @@ const UnassignedLead = () => {
 
     const handleBranchSelect = (branchId) => {
         setSelectedBranchId(branchId);
+    };
+
+    const viewDescription = (lead) => {
+        // setSelectedUserDescription(lead);
+        // setCeoUnassignModal(true);
     };
 
     return (
@@ -265,25 +272,29 @@ const UnassignedLead = () => {
                                                 <div className="row">
                                                     {leadsForThisType.map((lead) => (
                                                         <div key={lead._id} className="col-6 mb-2" style={{ width: '45%', padding: '0px 10px 0px 25px' }} >
-                                                            <Card className="lead-card" style={{
-                                                                minWidth: '215px', // Ensures the cards are a reasonable minimum width
-                                                                maxWidth: '230px', // Optional: Limit max width for more consistent sizing
-                                                                height: '250px',
-                                                            }} >
+                                                            <Card className="lead-card"
+                                                                style={{
+                                                                    minWidth: '215px',  
+                                                                    maxWidth: '230px',
+                                                                    height: '250px',
+                                                                    backgroundColor: '#efefef'
+                                                                }}
+                                                            >
                                                                 <div>
-                                                                    <div className="d-flex justify-content-between align-items-start">
-                                                                        <Link to={`/single-leads/${lead._id}`} style={{ textDecoration: 'none', color: 'black' }}>
-                                                                            <p style={{ fontWeight: '600' }}>{lead.client?.name}</p>
-                                                                        </Link>
+                                                                    <div style={{ display: 'flex', gap: '5px', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
                                                                         <div className="main_lead_users_delete_btn_unassign">
                                                                             <IoMdAdd
-                                                                                style={{ fontSize: '24px', color: 'white', cursor: 'pointer' }}
+                                                                                style={{ fontSize: '20px', color: 'white', cursor: 'pointer' }}
                                                                                 onClick={() => handleAddUserClick(lead._id)}
                                                                             />
                                                                         </div>
+                                                                        <GrView style={{ fontSize: '20px', color: '#ffa000', cursor: 'pointer' }} onClick={() => viewDescription(lead)} />
                                                                     </div>
+                                                                    <Link to={`/single-leads/${lead._id}`} style={{ textDecoration: 'none', color: 'black' }}>
+                                                                        <p style={{ fontWeight: '600', color: '#979797' }} className='text-center mt-2' >{lead.client?.name}</p>
+                                                                    </Link>
 
-                                                                    <div className="text-center">
+                                                                    <div className="text-center" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }} >
                                                                         <div className='marketing_source_lead_unassign'>
                                                                             <p className='mb-0' style={{ fontSize: '11px' }}>
                                                                                 {lead?.pipeline_id?.name && lead.pipeline_id.name}
@@ -292,14 +303,14 @@ const UnassignedLead = () => {
                                                                                 {lead?.product_stage?.name && lead.product_stage.name}
                                                                             </p>
                                                                         </div>
-                                                                        <div className='source_lead_unassign'>
+                                                                        <div className='marketing_source_lead_unassign'>
                                                                             <p className='mb-0' style={{ fontSize: '11px' }}>
                                                                                 {lead?.source?.name && lead.source.name}
                                                                             </p>
                                                                         </div>
                                                                     </div>
 
-                                                                    <p className="text-center mt-4" style={{ fontWeight: '500', fontSize: '16px' }}>
+                                                                    <p className="text-center mt-4" style={{ fontWeight: '500', fontSize: '16px', color: '#979797' }}>
                                                                         {new Date(lead.created_at).toLocaleDateString('en-US', {
                                                                             year: 'numeric',
                                                                             month: 'long',
@@ -336,17 +347,17 @@ const UnassignedLead = () => {
                 <Modal.Body>
                     {userError && <p className="text-danger">{userError}</p>}
                     <Select
-                        options={allUsers.map((user) => ({ value: user._id, label: `${user.name} (${user.email})` }))}
+                        options={allUsers.map((user) => ({ value: user._id, label: `${user.name} (${user.role})` }))}
                         isMulti
                         value={selectedLeadUsers}
                         onChange={setSelectedLeadUsers}
                     />
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setUserModal(false)}>
+                    <Button className='all_close_btn_container' onClick={() => setUserModal(false)}>
                         Close
                     </Button>
-                    <Button variant="primary" onClick={AddUser}>
+                    <Button className='all_single_leads_button' onClick={AddUser}>
                         Add User
                     </Button>
                 </Modal.Footer>

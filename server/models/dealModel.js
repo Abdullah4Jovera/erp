@@ -83,6 +83,10 @@ const dealSchema = new Schema({
         type: Boolean,
         default: false
     },
+    is_report_generated: {
+        type: Boolean,
+        default: false
+    },
     service_commission_id: {
         type: Schema.Types.ObjectId,
         ref: 'ServiceCommission',

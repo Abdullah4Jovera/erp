@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Form, Container, Row, Col, Card, Button } from 'react-bootstrap';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Sidebar from '../../Components/sidebar/Sidebar';
+import { LuView } from "react-icons/lu";
 
 const LeadConverted = () => {
     const token = useSelector(state => state.loginSlice.user?.token);
@@ -11,7 +12,7 @@ const LeadConverted = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredNumbers, setFilteredNumbers] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 13; // Show 13 items on the first page
+    const itemsPerPage = 15; // Show 13 items on the first page
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -106,6 +107,7 @@ const LeadConverted = () => {
                                                     <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Status</th>
                                                     <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Call Status</th>
                                                     <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">Pipeline</th>
+                                                    <th style={{ backgroundColor: '#f8f9fd' }} className="equal-width">View Lead</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -118,6 +120,9 @@ const LeadConverted = () => {
                                                         <td className='table_td_class'>{entry.status}</td>
                                                         <td className='table_td_class'>{entry.calstatus}</td>
                                                         <td className='table_td_class'>{entry.pipeline?.name}</td>
+                                                        <td className='table_td_class'>
+                                                            <Link to={`/single-leads/${entry.lead_id}`} style={{ textDecoration: 'none', }} ><LuView style={{ color: '#ffa000', fontSize: '20px', cursor: 'pointer' }} /></Link>
+                                                        </td>
                                                     </tr>
                                                 ))}
                                             </tbody>

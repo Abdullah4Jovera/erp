@@ -26,13 +26,13 @@ import Labels from '../Components/Labels';
 import rejected_image from '../Assets/rejected_image.png'
 import './style.css';
 import TransferMessage from '../Components/transferMessage/TransferMessage';
+import PhoneBookComments from './phoneBook/PhoneBookComments';
 
 const SingleLead = () => {
     // User Token
     const token = useSelector(state => state.loginSlice.user?.token)
     const { id } = useParams();
     const [singleLead, setSingleLead] = useState([])
-    console.log(singleLead,'singleLead')
     const [modalShow, setModalShow] = useState(false); // Modal state
     const [transferModal, setTransferModal] = useState(false);
     const [moveLeadModal, setMoveLeadModal] = useState(false)
@@ -49,6 +49,7 @@ const SingleLead = () => {
     const [rejectLead, setRejectLead] = useState('')
     const [rejectReasonErrorMessage, setRejectReasonErrorMessage] = useState('')
     const permissions = useSelector(state => state.loginSlice.user?.permissions)
+    const [phoneBookModal, setPhoneBookModal] = useState(false)
 
     const canEditLead = permissions?.includes('edit_lead');
     const canMoveLead = permissions?.includes('move_lead');
@@ -57,8 +58,6 @@ const SingleLead = () => {
     const canAddUserLead = permissions?.includes('add_user_lead');
     const canContractLead = permissions?.includes('convert_lead');
     const canLabelLead = permissions?.includes('lead_labels');
-
-    console.log(singleLead.is_reject, 'singleLeadsingleLead')
 
     const fetchSingleLead = async () => {
         try {
@@ -159,6 +158,10 @@ const SingleLead = () => {
         setEidModal(false)
     }
 
+    const openPhoneBookModal = () => {
+        setPhoneBookModal(true)
+    }
+
 
     return (
         <div>
@@ -169,216 +172,57 @@ const SingleLead = () => {
                         <Sidebar />
                     </Col>
                     <Col xs={12} md={12} lg={10}>
-                        <Card className='leads_main_cards mb-3' style={{height:'100%' , maxHeight:'auto'  }}>
-                            <div className='' style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: '8px' }}>
-                                {
-                                    singleLead.is_reject &&
-                                        (canLabelLead || canEditLead || canMoveLead || canTransferLead || canRejectLead || canContractLead)
-                                        ? null
-                                        : (
-                                            <>
-                                                {canLabelLead && (
-                                                    <Button className="mt-3 all_single_leads_button" onClick={() => setLabelModal(true)}>
-                                                        Labels
-                                                    </Button>
-                                                )}
-                                                {canEditLead && (
-                                                    <Button className="mt-3 all_single_leads_button" onClick={() => setModalShow(true)}>
-                                                        Edit
-                                                    </Button>
-                                                )}
-                                                {canMoveLead && (
-                                                    <Button className="mt-3 all_single_leads_button" onClick={() => setMoveLeadModal(true)}>
-                                                        Move
-                                                    </Button>
-                                                )}
-                                                {canTransferLead && (
-                                                    <Button className="mt-3 all_single_leads_button" onClick={() => setTransferModal(true)}>
-                                                        Transfer
-                                                    </Button>
-                                                )}
-                                                {canRejectLead && (
-                                                    <Button className="mt-3 all_single_leads_button" onClick={() => openRejectedLead()}>
-                                                        Rejected
-                                                    </Button>
-                                                )}
-                                                {canContractLead && (
-                                                    <Button className="mt-3 all_single_leads_button" onClick={() => openLeadConvertModal()}>
-                                                        Contract
-                                                    </Button>
-                                                )}
-                                            </>
-                                        )
-                                }
-                            </div>
+                        <div className='' style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: '8px' }}>
+                            {
+                                singleLead.is_reject &&
+                                    (canLabelLead || canEditLead || canMoveLead || canTransferLead || canRejectLead || canContractLead)
+                                    ? null
+                                    : (
+                                        <>
+                                            {canLabelLead && (
+                                                <Button className="mt-3 all_single_leads_button" onClick={() => setLabelModal(true)}>
+                                                    Labels
+                                                </Button>
+                                            )}
+                                            {canEditLead && (
+                                                <Button className="mt-3 all_single_leads_button" onClick={() => setModalShow(true)}>
+                                                    Edit
+                                                </Button>
+                                            )}
+                                            {canMoveLead && (
+                                                <Button className="mt-3 all_single_leads_button" onClick={() => setMoveLeadModal(true)}>
+                                                    Move
+                                                </Button>
+                                            )}
+                                            {canTransferLead && (
+                                                <Button className="mt-3 all_single_leads_button" onClick={() => setTransferModal(true)}>
+                                                    Transfer
+                                                </Button>
+                                            )}
+                                            {canRejectLead && (
+                                                <Button className="mt-3 all_single_leads_button" onClick={() => openRejectedLead()}>
+                                                    Rejected
+                                                </Button>
+                                            )}
+                                            {canContractLead && (
+                                                <Button className="mt-3 all_single_leads_button" onClick={() => openLeadConvertModal()}>
+                                                    Contract
+                                                </Button>
+                                            )}
 
-                            <Row className='mt-4' >
+                                            <Button className="mt-3 all_single_leads_button" onClick={() => openPhoneBookModal()}>
+                                                PhoneBook Comments
+                                            </Button>
+                                        </>
+                                    )
+                            }
+                        </div>
+                        <Card className='leads_main_cards' style={{ height: '92%' }}>
+
+
+                            <Row className='' >
                                 <Col xs={12} md={12} lg={9} className='single_lead_col'>
-                                    {/* 1st Card */}
-                                    {
-                                        singleLead.is_reject && (
-                                            <Card body className='mb-4 ' style={{ position: 'relative' }} >
-                                                <div>
-                                                    <h4 style={{ color: '#B9406B', textAlign: 'center' }} className='mb-0'> Reason of Rejection Lead </h4>
-                                                <p>
-                                                    {singleLead && singleLead.reject_reason}
-                                                </p>
-                                                </div>
-                                                <Image src={rejected_image} className='rejected_image' alt='Rejected Image' style={{ width: '140px', height: '140px', borderRadius: '50%' }} />
-                                            </Card>
-                                        )
-                                    }
-
-                                    <Card body className='lead_discussion_main_card' >
-                                        {
-                                            labels?.length > 0 && (
-                                                <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', }}>
-                                                    {labels.map((label, index) => {
-                                                        let backgroundColor = '';
-
-                                                        // Set the background color based on the label color
-                                                        switch (label.color) {
-                                                            case 'success':
-                                                                backgroundColor = '#6fd943';
-                                                                break;
-                                                            case 'danger':
-                                                                backgroundColor = '#ff3a6e';
-                                                                break;
-                                                            case 'primary':
-                                                                backgroundColor = '#5c91dc';
-                                                                break;
-                                                            case 'warning':
-                                                                backgroundColor = '#ffa21d';
-                                                                break;
-                                                            case 'info':
-                                                                backgroundColor = '#6ac4f4';
-                                                                break;
-                                                            case 'secondary':
-                                                                backgroundColor = '#6c757d';
-                                                                break;
-                                                            default:
-                                                                backgroundColor = '#ccc'; // Default color if no match
-                                                        }
-
-                                                        return (
-                                                            <div key={index} style={{ marginRight: '4px', marginTop: '-16px', marginBottom: '20px' }}>
-                                                                <div
-                                                                    className='labels_class'
-                                                                    style={{
-                                                                        backgroundColor: backgroundColor,
-                                                                        borderRadius: '4px',
-                                                                        display: 'flex',
-                                                                        alignItems: 'center',
-                                                                        padding: '4px 8px',
-                                                                        cursor: 'pointer'
-                                                                    }}
-                                                                >
-                                                                    <p style={{ color: '#fff', margin: 0 }}>{label.name}</p>
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-
-                                                </div>
-                                            )
-                                        }
-                                        <h4 style={{ color: '#B9406B', textAlign: 'center' }} > {singleLead.client?.name && singleLead.client?.name} </h4>
-
-                                        <div className='first_card' >
-                                            <div className='single_lead_upper_container' >
-                                                <div className='single_lead_icons' >
-                                                    <MdOutlinePhone style={{ fontSize: '24px' }} />
-                                                </div>
-                                                <div>
-                                                    <p className='text-muted text-sm mb-0' >Phone</p>
-                                                    <h5 className='mb-0' style={{ color: '#B9406B', fontSize: '18px' }}> {singleLead.client?.phone && singleLead.client?.phone} </h5>
-                                                </div>
-                                            </div>
-
-                                            <div className='single_lead_upper_container' >
-                                                <div className='single_lead_icons_one' >
-                                                    <MdOutlineEmail style={{ fontSize: '24px' }} />
-                                                </div>
-                                                <div>
-                                                    <p className='text-muted text-sm mb-0' >Email</p>
-                                                    <h5 className='mb-0' style={{ color: '#ffa21d', fontSize: '18px' }} > {singleLead.client?.email && singleLead.client?.email} </h5>
-                                                </div>
-                                            </div>
-
-                                            <div className='single_lead_upper_container' >
-                                                <div className='single_lead_icons_two' >
-                                                    <SiEmirates style={{ fontSize: '24px' }} />
-                                                </div>
-                                                <div>
-                                                    <p className='text-muted text-sm mb-0' >Emorate ID</p>
-                                                    <h5 className='mb-0' style={{ color: '#3ec9d6', fontSize: '18px' }}> {singleLead.client?.e_id && singleLead.client?.e_id} </h5>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Card>
-
-                                    {/* 2nd Card */}
-                                    <Card body className='mt-4 lead_discussion_main_card' >
-                                        <h4 style={{ color: '#B9406B', textAlign: 'center' }} > {singleLead.products?.name && singleLead.products?.name} </h4>
-                                        <div className='first_card' >
-
-                                            <div className='single_lead_upper_container' >
-                                                <div className='single_lead_icons' >
-                                                    <HiMiniBuildingOffice2 style={{ fontSize: '24px' }} />
-                                                </div>
-                                                <div>
-                                                    <p className='text-muted text-sm mb-0' >Branch Name</p>
-                                                    <h5 className='mb-0' style={{ color: '#B9406B', fontSize: '18px' }}> {singleLead.branch?.name && singleLead.branch?.name} </h5>
-                                                </div>
-                                            </div>
-
-                                            <div className='single_lead_upper_container' >
-                                                <div className='single_lead_icons' >
-                                                    <FaCodeBranch style={{ fontSize: '24px' }} />
-                                                </div>
-                                                <div>
-                                                    <p className='text-muted text-sm mb-0' >Pipeline</p>
-                                                    <h5 className='mb-0' style={{ color: '#B9406B', fontSize: '18px' }}> {singleLead.pipeline_id?.name && singleLead.pipeline_id?.name} </h5>
-                                                </div>
-                                            </div>
-
-                                            <div className='single_lead_upper_container' >
-                                                <div className='single_lead_icons_two' >
-                                                    <SiGoogleadsense style={{ fontSize: '24px' }} />
-                                                </div>
-                                                <div>
-                                                    <p className='text-muted text-sm mb-0' >Lead Stage</p>
-                                                    <h5 className='mb-0' style={{ color: '#3ec9d6', fontSize: '18px' }}> {singleLead.product_stage?.name && singleLead.product_stage?.name} </h5>
-                                                </div>
-                                            </div>
-
-                                            <div className='single_lead_upper_container' >
-                                                <div className='single_lead_icons_two' >
-                                                    <TbSocial style={{ fontSize: '24px' }} />
-                                                </div>
-                                                <div>
-                                                    <p className='text-muted text-sm mb-0' >Lead From</p>
-                                                    <h5 className='mb-0' style={{ color: '#3ec9d6', fontSize: '18px' }}> {singleLead.lead_type?.name && singleLead.lead_type?.name} </h5>
-                                                </div>
-                                            </div>
-
-                                            <div className='single_lead_upper_container' >
-                                                <div className='single_lead_icons_one' >
-                                                    <TbWorldWww style={{ fontSize: '24px' }} />
-                                                </div>
-                                                <div>
-                                                    <p className='text-muted text-sm mb-0' >Source</p>
-                                                    <h5 className='mb-0' style={{ color: '#ffa21d', fontSize: '18px' }} > {singleLead.source?.name && singleLead.source?.name} </h5>
-                                                </div>
-                                            </div>
-
-
-                                        </div>
-                                    </Card>
-
-                                    <LeadUsers singleLead={singleLead} fetchSingleLead={fetchSingleLead} />
-                                    <FileUploader singleLead={singleLead} id={id} fetchSingleLead={fetchSingleLead} />
-                                    <ActivityLead singleLead={singleLead} />
+                                    <LeadUsers singleLead={singleLead} fetchSingleLead={fetchSingleLead} labels={labels} />
                                 </Col>
 
                                 <Col xs={12} md={12} lg={3}>
@@ -499,6 +343,7 @@ const SingleLead = () => {
             />
 
             <Labels getAllLabels={getAllLabels} pipelineId={pipelineId} labelModal={labelModal} setLabelModal={setLabelModal} labelName={labelName} leadId={id} fetchSingleLead={fetchSingleLead} previousLabels={previousLabels} />
+            <PhoneBookComments singleLead={singleLead} fetchSingleLead={fetchSingleLead} leadId={id} fetchLeadsData={() => setSingleLead(singleLead)} phoneBookModal={phoneBookModal} setPhoneBookModal={setPhoneBookModal} />
         </div >
     )
 }

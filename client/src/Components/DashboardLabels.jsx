@@ -62,6 +62,7 @@ const DashboardLabels = ({ fetchLeadsData, leadId, setLabelsDashBoardModal, labe
     };
 
     const getBranchID = localStorage.getItem('selectedBranchId');
+    console.log(getBranchID, 'getBranchID')
     const getProductID = localStorage.getItem('selectedProductId');
 
     const submitDashBoardLabels = async () => {
@@ -135,7 +136,6 @@ const DashboardLabels = ({ fetchLeadsData, leadId, setLabelsDashBoardModal, labe
                 ) : (
                     <div style={{ display: 'flex', flexWrap: 'wrap', margin: '-4px' }}>
                         {allLabels.map((label, index) => {
-                            console.log(label, 'alllabels')
                             return (
                                 <div key={index} style={{ flex: '0 0 calc(25% - 8px)', margin: '4px' }}>
                                     <div
@@ -168,8 +168,8 @@ const DashboardLabels = ({ fetchLeadsData, leadId, setLabelsDashBoardModal, labe
                 )}
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="secondary" onClick={() => setLabelsDashBoardModal(false)}>Close</Button>
-                <Button variant="primary" onClick={submitDashBoardLabels}>Add Labels</Button>
+                <Button className='all_close_btn_container' onClick={() => setLabelsDashBoardModal(false)}>Close</Button>
+                <Button className='all_single_leads_button' onClick={submitDashBoardLabels}>Add Labels</Button>
             </Modal.Footer>
         </Modal>
     );

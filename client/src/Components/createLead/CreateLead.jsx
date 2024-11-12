@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import './CreateLead.css';
-import { Button, Row, Col, Modal, Form } from 'react-bootstrap'
+import { Button, Row, Col, Modal, Form, Image } from 'react-bootstrap'
 import Select from 'react-select';
 import { GoCheck } from "react-icons/go";
 import InputMask from "react-input-mask";
 import { TiDeleteOutline } from "react-icons/ti";
+import { ImBlocked } from "react-icons/im";
+import blovkimage from '../../Assets/blovkimage.png'
 
 const debounce = (func, delay) => {
     let timeout;
@@ -22,7 +24,6 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
     const leadTypeSlice = useSelector(state => state.loginSlice.leadType);
     const productNamesSlice = useSelector(state => state.loginSlice.productNames);
     const pipelineSlice = useSelector(state => state.loginSlice.pipelines);
-    console.log(pipelineSlice, 'filteredPipelines')
     const branchUserSlice = useSelector(state => state.loginSlice.user?.branch);
     const pipelineUserSlice = useSelector(state => state.loginSlice.user?.pipeline);
     const productUserSlice = useSelector(state => state.loginSlice.user?.products);
@@ -72,11 +73,19 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
     const [restoreModal, setRestorModal] = useState(false)
     const [Restoredescription, setRestoreDescription] = useState('');
     const [restoreData, setRestoreData] = useState('')
+    const [phonebookEntry, setPhonebookEntry] = useState(null);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [blockModal, setBlockmodal] = useState(false)
+    const [authorizedModal, setAuthorizedmodal] = useState(false);
+    const [currentBranch, setCurrentBranch] = useState('')
+    const [currentProduct, setCurrentProduct] = useState('')
+    const [currentPipeLine, setCurrentPipeline] = useState('')
+    const [currentProductStage, setCurrentProductStage] = useState('')
+    console.log(currentBranch,currentProduct,currentPipeLine,currentProductStage,'currentProductStage')
 
     // Auth Token
     const token = useSelector(state => state.loginSlice.user?.token);
-
+    const userId = useSelector(state => state.loginSlice.user?._id);
     const getProductID = localStorage.getItem('selectedProductId')
     const getBranchID = localStorage.getItem('selectedBranchId')
 
@@ -158,7 +167,7 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
             const response = await axios.get(`/api/productstages/${selectedProduct}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setProductStage(Array.isArray(response.data ? response.data : []));
+            setProductStage(response.data);
         } catch (error) {
             console.error('Error fetching product stages:', error);
         }
@@ -258,7 +267,6 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
         }
     };
 
-
     const checkClientPhone = async (completePhoneNumber) => {
         try {
             const response = await axios.post(
@@ -273,14 +281,64 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
                 }
             );
 
-            const responseData = response.data[0];
+            const { leadDetails, phonebookEntry } = response.data;
+            setLeadDetails(leadDetails);
+            setPhonebookEntry(phonebookEntry);
+
+            // Check if leadDetails is empty
+            if (!leadDetails || leadDetails.length === 0) {
+                if (phonebookEntry) {
+                    // Check if the phonebook entry is blocked
+                    if (phonebookEntry.status === "BLOCKED") {
+                        setBlockmodal(true)
+                        if (!blockModal) {
+                            setIsValidPhone(false); // Set phone as invalid and stop further processing if user cancels
+                            return;
+                        }
+                    } else {
+                        // Check if the user is authorized
+                        if (userId !== phonebookEntry.user._id) {
+                            setAuthorizedmodal('You are not authorized to create a lead for this phone number.')
+                            setIsValidPhone(false);
+                            return; // Stop further execution if user is not authorized
+                        }
+
+                        // Show an alert if the number is not blocked but no lead details were found
+                        // alert(`
+                        //     No lead data found for this phone number. 
+                        //     Please see the following phone book data:
+
+                        //     Number: ${phonebookEntry.number}
+                        //     Status: ${phonebookEntry.status}
+                        //     Call Status: ${phonebookEntry.calstatus}
+
+                        //     User: ${phonebookEntry.user.name} (${phonebookEntry.user.email})
+                        //     Pipeline: ${phonebookEntry.pipeline.name}
+                        //     Uploaded by: ${phonebookEntry.uploaded_by.name}
+
+                        //     Visibility: ${phonebookEntry.visibility.map(user => `${user.name} (${user.email})`).join(', ')}
+                        // `);
+                    }
+                }
+                // else {
+                //     alert("No lead data or phone book entry found for this phone number.");
+                // }
+                setIsValidPhone(false);
+                return; // Stop further execution if no lead details are found
+            }
+
+            const responseData = leadDetails[0];
             setApiData(responseData); // Save the first object in state
+            setCurrentBranch(responseData?.branch?._id)
+            setCurrentProduct(responseData?.products?._id)
+            setCurrentPipeline(responseData?.pipeline?._id)
+            setCurrentProductStage(responseData?.productStage?._id)
             setIsValidPhone(true); // Assuming the response means it's valid
 
             if (responseData && responseData.client.phone === completePhoneNumber) {
                 // Check if the lead is rejected
                 if (responseData.isRejected) {
-                    setRejectedNumberModal(true)
+                    setRejectedNumberModal(true);
                     setClientName(responseData.client.name);
                     setClientEmail(responseData.client.email);
                     setLeadDetails(responseData.description);
@@ -333,6 +391,9 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
             setIsValidPhone(false); // Set phone as invalid if there's an error
         }
     };
+
+
+
 
     // Function to handle input change and trigger API call when the phone is complete
     const
@@ -672,7 +733,11 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
                 products: product, // The selected product
                 product_stage: selectedProductStage, // The selected product stage
                 pipeline_id: pipelineId, // The selected pipeline ID
-                type: "Move" // Example type (you can customize this if necessary)
+                type: "Move", // Example type (you can customize this if necessary)
+                currentBranch:currentBranch,
+                currentProduct:currentProduct,
+                currentPipeline:currentPipeLine,
+                currentProductStage:currentProductStage
             };
 
             const sendRequest = await axios.post(
@@ -712,7 +777,11 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
                 products: product, // The selected product
                 product_stage: selectedProductStage, // The selected product stage
                 pipeline_id: pipelineId, // The selected pipeline ID
-                type: "Transfer" // Example type (you can customize this if necessary)
+                type: "Transfer", // Example type (you can customize this if necessary)
+                currentBranch:currentBranch,
+                currentProduct:currentProduct,
+                currentPipeline:currentPipeLine,
+                currentProductStage:currentProductStage
             };
 
             const sendRequest = await axios.post(
@@ -1032,7 +1101,7 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
                                         disabled={isClientNameDisabled} // Disable based on state
                                     >
                                         <option value="">Select Product Stage</option>
-                                        {productStage.map(stage => (
+                                        {productStage?.map(stage => (
                                             <option key={stage._id} value={stage._id}>
                                                 {stage.name}
                                             </option>
@@ -1679,6 +1748,78 @@ const CreateLead = ({ setModal2Open, modal2Open, fetchLeadsData }) => {
                 <Modal.Footer>
                     <Button onClick={() => setShowConfirmModal(false)}>No</Button>
                     <Button onClick={() => { performRestore(); setShowConfirmModal(false); }}>Yes</Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Block Number Modal */}
+            <Modal
+                size="md"
+                aria-labelledby="contained-modal-title-vcenter"
+                centered
+                show={blockModal}
+                onHide={() => setBlockmodal(false)}
+            >
+                <Modal.Body className='text-center' >
+                    {/* <ImBlocked style={{ fontSize: '80px', color: 'red' }} /> */}
+                    <Image src={blovkimage} className='' alt='Blocked Image' style={{ width: '120px', height: '120px', borderRadius: '50%' }} />
+                    <p className='mt-1'>
+                        {`This number is blocked by Etisalat. If you'd like to create a lead, please click `}
+                        <strong>YES</strong>
+                    </p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button
+                        className='all_close_btn_container'
+                        onClick={() => {
+                            setBlockmodal(false);
+                            setModal2Open(false);
+                            resetFormFields();
+                        }}
+                    >
+                        No
+                    </Button>
+                    <Button
+                        className='all_single_leads_button'
+                        onClick={() => {
+                            setBlockmodal(false);
+                            // resetFormFields();
+                        }}
+                    >
+                        Yes
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Authorized Number Modal */}
+            <Modal
+                size="md"
+                aria-labelledby="contained-modal-title-vcenter"
+                centered
+                show={authorizedModal}
+                onHide={() => setAuthorizedmodal(false)}
+            >
+                <Modal.Body className='text-center' >
+                    <ImBlocked style={{ fontSize: '80px', color: 'red' }} />
+                    <p className='mt-3'>
+                        {`You are not Authorized to create the lead because this number is assigned to `}
+                        <strong>{phonebookEntry?.user.name}</strong>
+                        {`. You can contact them at `}
+                        <strong>{phonebookEntry?.user.email}</strong>
+                        {` for further assistance regarding `}
+                        <strong>{phonebookEntry?.number}</strong>.
+                    </p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button
+                        className='all_close_btn_container'
+                        onClick={() => {
+                            setAuthorizedmodal(false);
+                            setModal2Open(false);
+                            resetFormFields();
+                        }}
+                    >
+                        Close
+                    </Button>
                 </Modal.Footer>
             </Modal>
         </>

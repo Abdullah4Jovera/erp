@@ -204,6 +204,11 @@
     "transfer_lead",
     "edit_lead",
     "unassigned_lead",
-    "label_management"
-  ]
+    "label_management",
+    "file_upload",
+    "file_delete",
+    "file_download",
+    "file_upload_for_phonebook"
+  ],
+  "No Role": []
 }
